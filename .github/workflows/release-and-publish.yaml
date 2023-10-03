@@ -1,0 +1,42 @@
+name: 🏷️ Release and publish a new version of the package
+on:
+# Run on pull request merged from a `pre-release` branch into the `main` branch\
+  pull_request:
+    types:
+        - closed
+    branches:
+        - temp/main
+    paths:
+        - 'packages/**/CHANGELOG.md'
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout source code'
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@kaoto-next'
+          cache: 'yarn'
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🔧 Install dependencies
+        run:  yarn
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1.13.0
+        with:
+          draft: true
+
+      - name: Publish npm package
+        run: yarn publish --dry-run
