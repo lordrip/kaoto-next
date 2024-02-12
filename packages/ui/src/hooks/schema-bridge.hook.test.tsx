@@ -5,7 +5,9 @@ import { useSchemaBridgeContext } from './schema-bridge.hook';
 
 describe('useSchemaBridgeContext', () => {
   const wrapper = ({ children }: PropsWithChildren) => (
-    <SchemaBridgeProvider schema={{}}>{children}</SchemaBridgeProvider>
+    <SchemaBridgeProvider schema={{}} parentRef={null}>
+      {children}
+    </SchemaBridgeProvider>
   );
 
   it('should throw an error if used outside of SchemaBridgeProvider', () => {
