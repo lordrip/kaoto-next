@@ -71,6 +71,7 @@ const navElements: NavElements = [
     title: 'Visualization',
     children: [
       { title: 'Design', to: Links.Home },
+      { title: 'Configurations', to: Links.Configurations },
       { title: 'Source Code', to: Links.SourceCode },
     ],
   },

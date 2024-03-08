@@ -1,8 +1,9 @@
-import '@patternfly/react-core/dist/styles/base.css'; // This import needs to be first
+import '@patternfly/patternfly/patternfly.scss'; // This import needs to be first
+import '@patternfly/patternfly/patternfly-addons.scss';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
-import { router } from './router';
 import { FilterDOMPropsKeys, filterDOMProps } from 'uniforms';
+import { router } from './router';
 
 filterDOMProps.register('inputRef' as FilterDOMPropsKeys, 'placeholder' as FilterDOMPropsKeys);
 

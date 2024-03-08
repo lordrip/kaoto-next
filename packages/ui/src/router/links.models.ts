@@ -1,5 +1,6 @@
 export const enum Links {
   Home = '/', // Flows visualization
+  Configurations = '/configurations', // Configurations that doesn't have flows
   SourceCode = '/code', // Flows source code
   Beans = '/beans',
   Rest = '/rest',
