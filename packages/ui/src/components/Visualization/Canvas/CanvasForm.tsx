@@ -35,7 +35,7 @@ export const CanvasForm: FunctionComponent<CanvasFormProps> = (props) => {
   const title = visualComponentSchema?.title;
 
   useEffect(() => {
-    formRef.current?.form.reset();
+    // formRef.current?.form.reset();
   }, [props.selectedNode.data?.vizNode]);
 
   const handleOnChangeIndividualProp = useCallback(

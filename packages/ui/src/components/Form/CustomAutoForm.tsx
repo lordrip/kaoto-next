@@ -20,6 +20,7 @@ export const CustomAutoForm = forwardRef<CustomAutoFormRef, CustomAutoFormProps>
   const schemaBridge = useSchemaBridgeContext();
   const formRef = useRef<typeof AutoForm>();
   const fieldsRefs = useRef<HTMLElement[]>([]);
+
   const sortedFieldsNames = useMemo(() => {
     if (schemaBridge === undefined || !props.sortFields) {
       return [];
@@ -46,6 +47,7 @@ export const CustomAutoForm = forwardRef<CustomAutoFormRef, CustomAutoFormProps>
     fields: fieldsRefs.current,
     form: formRef.current,
   }));
+
   return (
     <AutoField.componentDetectorContext.Provider value={CustomAutoFieldDetector}>
       <AutoForm

@@ -1,11 +1,13 @@
-import { DateField, ListField, NestField, RadioField, TextField, BoolField } from '@kaoto-next/uniforms-patternfly';
+import { BoolField, DateField, ListField, NestField, RadioField, TextField } from '@kaoto-next/uniforms-patternfly';
 import { createAutoField } from 'uniforms';
-import { TypeaheadField } from './customField/TypeaheadField';
-import { DisabledField } from './customField/DisabledField';
 import { BeanReferenceField } from './bean/BeanReferenceField';
+import { DisabledField } from './customField/DisabledField';
+import { OptionalNestField } from './customField/OptionalNestField';
+import { TypeaheadField } from './customField/TypeaheadField';
 import { ExpressionAwareNestField } from './expression/ExpressionAwareNestField';
 import { ExpressionField } from './expression/ExpressionField';
 import { PropertiesField } from './properties/PropertiesField';
+import { isDefined } from '../../utils';
 
 /**
  * Custom AutoField that supports all the fields from Uniforms PatternFly
@@ -28,6 +30,10 @@ export const CustomAutoField = createAutoField((props) => {
   } else if (props.fieldType === Object && (props.field as any)?.type === 'object' && comment === 'expression') {
     // The property which supports inlined expression such as `/setHeaders/headers[n]
     return ExpressionAwareNestField;
+  }
+
+  if (isDefined(props.field) && Object.keys(props.field!).length === 0) {
+    return OptionalNestField;
   }
 
   switch (props.fieldType) {
