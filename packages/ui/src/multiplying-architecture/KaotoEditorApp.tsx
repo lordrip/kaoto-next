@@ -3,7 +3,6 @@ import {
   EditorApi,
   EditorInitArgs,
   EditorTheme,
-  KogitoEditorChannelApi,
   KogitoEditorEnvelopeContextType,
 } from '@kie-tools-core/editor/dist/api';
 import { Notification } from '@kie-tools-core/notifications/dist/api';
@@ -11,6 +10,7 @@ import '@patternfly/react-core/dist/styles/base.css'; // This import needs to be
 import { RefObject, createRef } from 'react';
 import { EntitiesProvider } from '../providers/entities.provider';
 import { SourceCodeProvider } from '../providers/source-code.provider';
+import { KaotoEditorChannelApi } from '../public-api';
 import { KaotoBridge } from './KaotoBridge';
 import { KaotoEditor } from './KaotoEditor';
 
@@ -21,10 +21,13 @@ export class KaotoEditorApp implements Editor {
   af_componentTitle = 'Kaoto Editor';
 
   constructor(
-    private readonly envelopeContext: KogitoEditorEnvelopeContextType<KogitoEditorChannelApi>,
+    private readonly envelopeContext: KogitoEditorEnvelopeContextType<KaotoEditorChannelApi>,
     private readonly initArgs: EditorInitArgs,
   ) {
     this.editorRef = createRef<EditorApi>();
+    this.envelopeContext.channelApi.requests.getExample().then((example) => {
+      console.warn('Example:', example);
+    });
   }
 
   async getElementPosition() {
