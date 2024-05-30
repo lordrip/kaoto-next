@@ -27,6 +27,7 @@ import static io.kaoto.camelcatalog.Constants.KUBERNETES_DEFINITIONS;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
@@ -36,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -130,8 +132,7 @@ public class KaotoCamelCatalogBuilder {
 
         private CamelYamlDslSchemaProcessor processCamelSchema(Index index) {
             if (camelCatalogVersionLoader.getCamelYamlDslSchema() == null) {
-                LOGGER.severe(String.format(
-                        "Camel YAML DSL JSON Schema is not loaded"));
+                LOGGER.severe("Camel YAML DSL JSON Schema is not loaded");
                 return null;
             }
 
@@ -236,8 +237,7 @@ public class KaotoCamelCatalogBuilder {
 
         private void processKameletBoundaries(Index index) {
             if (camelCatalogVersionLoader.getKameletBoundaries().isEmpty()) {
-                LOGGER.severe(String.format(
-                        "Kamelet boundaries are not loaded"));
+                LOGGER.severe("Kamelet boundaries are not loaded");
                 return;
             }
 
@@ -248,8 +248,7 @@ public class KaotoCamelCatalogBuilder {
 
         private void processKamelets(Index index) {
             if (camelCatalogVersionLoader.getKamelets().isEmpty()) {
-                LOGGER.severe(String.format(
-                        "Kamelets are not loaded"));
+                LOGGER.severe("Kamelets are not loaded");
                 return;
             }
 
@@ -269,20 +268,23 @@ public class KaotoCamelCatalogBuilder {
                 JsonFactory jsonFactory = new JsonFactory();
                 var outputStream = new ByteArrayOutputStream();
                 var writer = new OutputStreamWriter(outputStream);
-                var jsonGenerator = jsonFactory.createGenerator(writer).useDefaultPrettyPrinter();
 
-                jsonMapper.writeTree(jsonGenerator, root);
-                var rootBytes = outputStream.toByteArray();
-                var outputFileName = String.format("%s-%s.json", filename, Util.generateHash(rootBytes));
-                var output = outputDirectory.toPath().resolve(outputFileName);
+                try (JsonGenerator jsonGenerator = jsonFactory.createGenerator(writer).useDefaultPrettyPrinter()) {
+                    jsonMapper.writeTree(jsonGenerator, root);
+                    var rootBytes = outputStream.toByteArray();
+                    var outputFileName = String.format("%s-%s.json", filename, Util.generateHash(rootBytes));
+                    var output = outputDirectory.toPath().resolve(outputFileName);
 
-                Files.write(output, rootBytes);
+                    Files.write(output, rootBytes);
 
-                return new Entry(
-                        name,
-                        description,
-                        kameletsVersion,
-                        outputFileName);
+                    return new Entry(
+                            name,
+                            description,
+                            kameletsVersion,
+                            outputFileName);
+                } catch (IOException e) {
+                    LOGGER.log(Level.SEVERE, e.toString(), e);
+                }
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
@@ -304,8 +306,7 @@ public class KaotoCamelCatalogBuilder {
 
         private void processK8sSchema(Index index) {
             if (camelCatalogVersionLoader.getKubernetesSchema() == null) {
-                LOGGER.severe(String.format(
-                        "Kubernetes JSON Schema is not loaded"));
+                LOGGER.severe("Kubernetes JSON Schema is not loaded");
             }
 
             try {
@@ -333,8 +334,7 @@ public class KaotoCamelCatalogBuilder {
 
         private void processKameletsCRDs(Index index) {
             if (camelCatalogVersionLoader.getCamelKCRDs().isEmpty()) {
-                LOGGER.severe(String.format(
-                        "CamelK CRDs are not loaded"));
+                LOGGER.severe("CamelK CRDs are not loaded");
                 return;
             }
 
@@ -370,8 +370,7 @@ public class KaotoCamelCatalogBuilder {
 
         private void processAdditionalSchemas(Index index) {
             if (camelCatalogVersionLoader.getLocalSchemas().isEmpty()) {
-                LOGGER.severe(String.format(
-                        "Local schemas are not loaded"));
+                LOGGER.severe("Local schemas are not loaded");
                 return;
             }
 

@@ -15,18 +15,18 @@
  */
 package io.kaoto.camelcatalog;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Process camelYamlDsl.json file, aka Camel YAML DSL JSON schema.
@@ -44,14 +44,19 @@ public class CamelYamlDslSchemaProcessor {
     private final ObjectNode yamlDslSchema;
     private final List<String> processorBlocklist = List.of(
             "org.apache.camel.model.KameletDefinition"
-            // reactivate entries once we have a better handling of how to add WHEN and OTHERWISE without Catalog
-            // "Otherwise",
-            // "when",
-            // "doCatch",
-            // ""doFinally"
+    // reactivate entries once we have a better handling of how to add WHEN and
+    // OTHERWISE without Catalog
+    // "Otherwise",
+    // "when",
+    // "doCatch",
+    // ""doFinally"
     );
-    /** The processor properties those should be handled separately, i.e. remove from the properties schema,
-     * such as branching node and parameters reflected from the underlying components. */
+    /**
+     * The processor properties those should be handled separately, i.e. remove from
+     * the properties schema,
+     * such as branching node and parameters reflected from the underlying
+     * components.
+     */
     private final Map<String, List<String>> processorPropertyBlockList = Map.of(
             "org.apache.camel.model.ChoiceDefinition",
             List.of("when", "otherwise"),
@@ -60,11 +65,9 @@ public class CamelYamlDslSchemaProcessor {
             "org.apache.camel.model.ToDefinition",
             List.of("uri", "parameters"),
             "org.apache.camel.model.WireTapDefinition",
-            List.of("uri", "parameters")
-    );
+            List.of("uri", "parameters"));
     private final List<String> processorReferenceBlockList = List.of(
-            PROCESSOR_DEFINITION
-    );
+            PROCESSOR_DEFINITION);
 
     public CamelYamlDslSchemaProcessor(ObjectMapper mapper, ObjectNode yamlDslSchema) throws Exception {
         this.jsonMapper = mapper;
@@ -99,8 +102,7 @@ public class CamelYamlDslSchemaProcessor {
     private String doProcessSubSchema(
             java.util.Map.Entry<String, JsonNode> prop,
             ObjectNode definitions,
-            ObjectNode rootSchema
-    ) {
+            ObjectNode rootSchema) {
         var answer = (ObjectNode) prop.getValue().deepCopy();
         if (answer.has("$ref") && definitions.has(getNameFromRef(answer))) {
             answer = definitions.withObject("/" + getNameFromRef(answer)).deepCopy();
@@ -127,7 +129,7 @@ public class CamelYamlDslSchemaProcessor {
 
     private void populateDefinitions(ObjectNode schema, ObjectNode definitions) {
         boolean added = true;
-        while(added) {
+        while (added) {
             added = false;
             for (JsonNode refParent : schema.findParents("$ref")) {
                 var name = getNameFromRef((ObjectNode) refParent);
@@ -145,9 +147,12 @@ public class CamelYamlDslSchemaProcessor {
     }
 
     /**
-     * Extract single OneOf definition from AnyOf definition and put it into the root definitions.
-     * It's a workaround for the current Camel YAML DSL JSON schema, where some AnyOf definition
-     * contains only one OneOf definition. This can be removed once https://github.com/KaotoIO/kaoto/issues/948
+     * Extract single OneOf definition from AnyOf definition and put it into the
+     * root definitions.
+     * It's a workaround for the current Camel YAML DSL JSON schema, where some
+     * AnyOf definition
+     * contains only one OneOf definition. This can be removed once
+     * https://github.com/KaotoIO/kaoto/issues/948
      * is resolved.
      * This is done mostly for the errorHandler definition, f.i.
      * ```
@@ -186,21 +191,28 @@ public class CamelYamlDslSchemaProcessor {
     }
 
     /**
-     * Extract the processor definitions from the main Camel YAML DSL JSON schema in the usable
-     * format for uniforms to render the configuration form. It does a couple of things:
+     * Extract the processor definitions from the main Camel YAML DSL JSON schema in
+     * the usable
+     * format for uniforms to render the configuration form. It does a couple of
+     * things:
      * <ul>
      * <li>Remove "oneOf" and "anyOf"</li>
      * <li>Remove properties those are supposed to be handled separately:
      * <ul>
-     *     <li>"steps": branching steps</li>
-     *     <li>"parameters": component parameters</li>
-     *     <li>expression languages</li>
-     *     <li>dataformats</li>
-     * </ul></li>
-     * <li>If the processor is expression aware, it puts "expression" as a "$comment" in the schema</li>
-     * <li>If the processor is dataformat aware, it puts "dataformat" as a "$comment" in the schema</li>
-     * <li>If the processor property is expression aware, it puts "expression" as a "$comment" in the property schema</li>
+     * <li>"steps": branching steps</li>
+     * <li>"parameters": component parameters</li>
+     * <li>expression languages</li>
+     * <li>dataformats</li>
      * </ul>
+     * </li>
+     * <li>If the processor is expression aware, it puts "expression" as a
+     * "$comment" in the schema</li>
+     * <li>If the processor is dataformat aware, it puts "dataformat" as a
+     * "$comment" in the schema</li>
+     * <li>If the processor property is expression aware, it puts "expression" as a
+     * "$comment" in the property schema</li>
+     * </ul>
+     *
      * @return
      */
     public Map<String, ObjectNode> getProcessors() throws Exception {
@@ -215,7 +227,7 @@ public class CamelYamlDslSchemaProcessor {
 
         var answer = new LinkedHashMap<String, ObjectNode>();
         for (var processorEntry : processors) {
-            var processorFQCN = getNameFromRef((ObjectNode)processorEntry);
+            var processorFQCN = getNameFromRef((ObjectNode) processorEntry);
             if (processorBlocklist.contains(processorFQCN)) {
                 continue;
             }
@@ -254,7 +266,8 @@ public class CamelYamlDslSchemaProcessor {
                     continue;
                 }
                 if (!property.has("type")) {
-                    // inherited properties, such as for expression - supposed to be handled separately
+                    // inherited properties, such as for expression - supposed to be handled
+                    // separately
                     propToRemove.add(propName);
                 }
             }
@@ -270,11 +283,16 @@ public class CamelYamlDslSchemaProcessor {
         var routeConfigurationProcessor = relocatedDefinitions
                 .withObject(ROUTE_CONFIGURATION_DEFINITION)
                 .withObject("/properties");
-        var interceptProcessor = routeConfigurationProcessor.withObject("intercept").withObject("items").withObject("properties");
-        var interceptFromProcessor = routeConfigurationProcessor.withObject("interceptFrom").withObject("items").withObject("properties");
-        var interceptSendToEndpointProcessor = routeConfigurationProcessor.withObject("interceptSendToEndpoint").withObject("items").withObject("properties");
-        var onExceptionProcessor = routeConfigurationProcessor.withObject("onException").withObject("items").withObject("properties");
-        var onCompletionProcessor = routeConfigurationProcessor.withObject("onCompletion").withObject("items").withObject("properties");
+        var interceptProcessor = routeConfigurationProcessor.withObject("intercept").withObject("items")
+                .withObject("properties");
+        var interceptFromProcessor = routeConfigurationProcessor.withObject("interceptFrom").withObject("items")
+                .withObject("properties");
+        var interceptSendToEndpointProcessor = routeConfigurationProcessor.withObject("interceptSendToEndpoint")
+                .withObject("items").withObject("properties");
+        var onExceptionProcessor = routeConfigurationProcessor.withObject("onException").withObject("items")
+                .withObject("properties");
+        var onCompletionProcessor = routeConfigurationProcessor.withObject("onCompletion").withObject("items")
+                .withObject("properties");
         processors.setAll(interceptProcessor);
         processors.setAll(interceptFromProcessor);
         processors.setAll(interceptSendToEndpointProcessor);
@@ -296,8 +314,10 @@ public class CamelYamlDslSchemaProcessor {
         for (var def : oneOf) {
             if (def.get("type").asText().equals("object")) {
                 var objectDef = (ObjectNode) def;
-                if (definition.has("title")) objectDef.set("title", definition.get("title"));
-                if (definition.has("description")) objectDef.set("description", definition.get("description"));
+                if (definition.has("title"))
+                    objectDef.set("title", definition.get("title"));
+                if (definition.has("description"))
+                    objectDef.set("description", definition.get("description"));
                 return objectDef;
             }
         }
@@ -312,12 +332,14 @@ public class CamelYamlDslSchemaProcessor {
         }
         var anyOfOneOf = definition.withArray("/anyOf").get(0).withArray("/oneOf");
         for (var def : anyOfOneOf) {
-            if (def.has("$ref") && def.get("$ref").asText().equals("#/definitions/org.apache.camel.model.language.ExpressionDefinition")) {
+            if (def.has("$ref") && def.get("$ref").asText()
+                    .equals("#/definitions/org.apache.camel.model.language.ExpressionDefinition")) {
                 definition.put("$comment", "expression");
                 break;
             }
             var refParent = def.findParent("$ref");
-            if (refParent != null && refParent.get("$ref").asText().startsWith("#/definitions/org.apache.camel.model.dataformat")) {
+            if (refParent != null
+                    && refParent.get("$ref").asText().startsWith("#/definitions/org.apache.camel.model.dataformat")) {
                 definition.put("$comment", "dataformat");
                 break;
             }
@@ -356,7 +378,8 @@ public class CamelYamlDslSchemaProcessor {
                 var propName = property.getKey();
                 var propValue = property.getValue();
                 if (!propValue.has("$ref") && !propValue.has("type")) {
-                    // inherited properties, such as for expression - supposed to be handled separately
+                    // inherited properties, such as for expression - supposed to be handled
+                    // separately
                     propToRemove.add(propName);
                 }
 
@@ -372,6 +395,7 @@ public class CamelYamlDslSchemaProcessor {
         }
         defToRemove.forEach(definitions::remove);
     }
+
     public Map<String, ObjectNode> getDataFormats() throws Exception {
         var definitions = yamlDslSchema
                 .withObject("/items")
@@ -386,12 +410,14 @@ public class CamelYamlDslSchemaProcessor {
                 .withArray("/anyOf")
                 .get(0).withArray("/oneOf");
         if (fromMarshal.size() != fromUnmarshal.size()) {
-            // Could this happen in the future? If so, we need to prepare separate sets for marshal and unmarshal
+            // Could this happen in the future? If so, we need to prepare separate sets for
+            // marshal and unmarshal
             throw new Exception("Marshal and Unmarshal dataformats are not the same size");
-        };
+        }
+        ;
 
         var answer = new LinkedHashMap<String, ObjectNode>();
-        for( var entry : fromMarshal) {
+        for (var entry : fromMarshal) {
             if (!entry.has("required")) {
                 // assuming "not" entry
                 continue;
@@ -440,7 +466,7 @@ public class CamelYamlDslSchemaProcessor {
                 .withArray("/oneOf");
 
         var answer = new LinkedHashMap<String, ObjectNode>();
-        for( var entry : languages) {
+        for (var entry : languages) {
             if (!"object".equals(entry.get("type").asText()) || !entry.has("required")) {
                 throw new Exception("Unexpected language entry " + entry.asText());
             }
@@ -478,22 +504,30 @@ public class CamelYamlDslSchemaProcessor {
     }
 
     /**
-     * Extract the entity definitions from the main Camel YAML DSL JSON schema in the usable
-     * format for uniforms to render the configuration form. "entity" here means the top level
-     * properties in Camel YAML DSL, such as "route", "rest", "beans", "routeConfiguration", etc.
+     * Extract the entity definitions from the main Camel YAML DSL JSON schema in
+     * the usable
+     * format for uniforms to render the configuration form. "entity" here means the
+     * top level
+     * properties in Camel YAML DSL, such as "route", "rest", "beans",
+     * "routeConfiguration", etc.
      * They are marked with "@YamlIn" annotation in the Camel codebase.
      * It does a couple of things:
      * <li>Remove "oneOf" and "anyOf"</li>
      * <li>Remove properties those are supposed to be handled separately:
      * <ul>
-     *     <li>"steps": branching steps</li>
-     *     <li>"parameters": component parameters</li>
-     *     <li>expression languages</li>
-     *     <li>dataformats</li>
-     * </ul></li>
-     * <li>If the processor is expression aware, it puts "expression" as a "$comment" in the schema</li>
-     * <li>If the processor is dataformat aware, it puts "dataformat" as a "$comment" in the schema</li>
-     * <li>If the processor property is expression aware, it puts "expression" as a "$comment" in the property schema</li>
+     * <li>"steps": branching steps</li>
+     * <li>"parameters": component parameters</li>
+     * <li>expression languages</li>
+     * <li>dataformats</li>
+     * </ul>
+     * </li>
+     * <li>If the processor is expression aware, it puts "expression" as a
+     * "$comment" in the schema</li>
+     * <li>If the processor is dataformat aware, it puts "dataformat" as a
+     * "$comment" in the schema</li>
+     * <li>If the processor property is expression aware, it puts "expression" as a
+     * "$comment" in the property schema</li>
+     *
      * @return
      */
     public Map<String, ObjectNode> getEntities() throws Exception {
@@ -509,7 +543,7 @@ public class CamelYamlDslSchemaProcessor {
         for (var yamlInRef : yamlIn.properties()) {
             var yamlInName = yamlInRef.getKey();
             var yamlInRefValue = (ObjectNode) yamlInRef.getValue();
-            var yamlInFQCN = getNameFromRef((ObjectNode)yamlInRefValue);
+            var yamlInFQCN = getNameFromRef(yamlInRefValue);
             var yamlInDefinition = relocatedDefinitions.withObject("/" + yamlInFQCN);
             yamlInDefinition = extractFromOneOf(yamlInFQCN, yamlInDefinition);
             yamlInDefinition.remove("oneOf");
@@ -539,7 +573,8 @@ public class CamelYamlDslSchemaProcessor {
                     continue;
                 }
                 if (!property.has("type")) {
-                    // inherited properties, such as for expression - supposed to be handled separately
+                    // inherited properties, such as for expression - supposed to be handled
+                    // separately
                     propToRemove.add(propertyName);
                 }
             }
@@ -562,7 +597,7 @@ public class CamelYamlDslSchemaProcessor {
                 .withArray("/oneOf");
 
         var answer = new LinkedHashMap<String, ObjectNode>();
-        for( var entry : loadBalancerAnyOfOneOf) {
+        for (var entry : loadBalancerAnyOfOneOf) {
             if (entry.has("not")) {
                 continue;
             }

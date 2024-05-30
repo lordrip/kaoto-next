@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.camel.catalog.CamelCatalog;
 import org.apache.camel.catalog.DefaultCamelCatalog;
@@ -25,6 +27,7 @@ import org.apache.camel.catalog.VersionManager;
 import org.apache.camel.catalog.maven.MavenVersionManager;
 
 public class CamelCatalogVersionLoader {
+    private static final Logger LOGGER = Logger.getLogger(CamelCatalogVersionLoader.class.getName());
     private final VersionManager VERSION_MANAGER = new MavenVersionManager();
     private CamelCatalog camelCatalog = new DefaultCamelCatalog(false);
     private String camelYamlDSLSchema;
@@ -69,7 +72,7 @@ public class CamelCatalogVersionLoader {
     }
 
     public boolean loadCamelYamlDsl(String version) {
-        boolean isCamelYamlDslLoaded = loadDepedencyInClasspath(Constants.APACHE_CAMEL_ORG,
+        boolean isCamelYamlDslLoaded = loadDependencyInClasspath(Constants.APACHE_CAMEL_ORG,
                 Constants.CAMEL_YAML_DSL_PACKAGE,
                 version);
 
@@ -85,7 +88,7 @@ public class CamelCatalogVersionLoader {
                 camelYamlDSLSchema = scanner.hasNext() ? scanner.next() : "";
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, e.toString(), e);
             return false;
         }
 
@@ -102,22 +105,23 @@ public class CamelCatalogVersionLoader {
                     .filter(Files::isRegularFile)
                     .filter(path -> path.toString().endsWith(".kamelet.yaml"))
                     .forEach(path -> {
-                        System.out.println(path);
+                        LOGGER.log(Level.INFO, "Parsing: " + path.toString());
+
                         try {
                             kameletBoundaries.add(new String(Files.readAllBytes(path)));
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            LOGGER.log(Level.SEVERE, e.toString(), e);
                         }
                     });
         } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, e.toString(), e);
         }
 
-        return kameletBoundaries.size() > 0;
+        return !kameletBoundaries.isEmpty();
     }
 
     public boolean loadKamelets(String version) {
-        boolean areKameletsLoaded = loadDepedencyInClasspath(Constants.APACHE_CAMEL_KAMELETS_ORG,
+        boolean areKameletsLoaded = loadDependencyInClasspath(Constants.APACHE_CAMEL_KAMELETS_ORG,
                 Constants.KAMELETS_PACKAGE,
                 version);
 
@@ -137,21 +141,22 @@ public class CamelCatalogVersionLoader {
                         JarEntry entry = entries.nextElement();
                         if (entry.getName().startsWith(connection.getEntryName()) && !entry.isDirectory()
                                 && entry.getName().endsWith(".kamelet.yaml")) {
-                            System.out.println(entry.getName());
+
+                            LOGGER.log(Level.INFO, "Parsing: " + entry.getName());
                             try (InputStream inputStream = jarFile.getInputStream(entry)) {
                                 try (Scanner scanner = new Scanner(inputStream)) {
                                     scanner.useDelimiter("\\A");
                                     kamelets.add(scanner.hasNext() ? scanner.next() : "");
                                 }
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                LOGGER.log(Level.SEVERE, e.toString(), e);
                             }
                         }
                     }
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, e.toString(), e);
         }
 
         return areKameletsLoaded;
@@ -165,7 +170,7 @@ public class CamelCatalogVersionLoader {
             scanner.useDelimiter("\\A");
             kubernetesSchema = scanner.hasNext() ? scanner.next() : "";
         } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, e.toString(), e);
             return false;
         }
 
@@ -173,7 +178,7 @@ public class CamelCatalogVersionLoader {
     }
 
     public boolean loadCamelKCRDs(String version) {
-        boolean areCamelKCRDsLoaded = loadDepedencyInClasspath(Constants.APACHE_CAMEL_K_ORG,
+        boolean areCamelKCRDsLoaded = loadDependencyInClasspath(Constants.APACHE_CAMEL_K_ORG,
                 Constants.CAMEL_K_CRDS_PACKAGE,
                 version);
 
@@ -191,7 +196,7 @@ public class CamelCatalogVersionLoader {
                     camelKCRDs.add(scanner.hasNext() ? scanner.next() : "");
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.log(Level.SEVERE, e.toString(), e);
                 return false;
             }
         }
@@ -207,17 +212,18 @@ public class CamelCatalogVersionLoader {
             Files.walk(Paths.get(schemasFolderUrl.toURI()))
                     .filter(Files::isRegularFile)
                     .forEach(path -> {
-                        System.out.println(path);
+                        LOGGER.log(Level.INFO, "Parsing: " + path.toString());
+
                         try {
                             String filenameWithoutExtension = path.toFile().getName().substring(0,
                                     path.toFile().getName().lastIndexOf('.'));
                             localSchemas.put(filenameWithoutExtension, new String(Files.readAllBytes(path)));
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            LOGGER.log(Level.SEVERE, e.toString(), e);
                         }
                     });
         } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, e.toString(), e);
         }
     }
 
@@ -227,7 +233,7 @@ public class CamelCatalogVersionLoader {
      * to load dependencies that are not in the classpath, while the Kamel Catalog
      * exposes a method to load dependencies in the classpath.
      */
-    private boolean loadDepedencyInClasspath(String groupId, String artifactId, String version) {
+    private boolean loadDependencyInClasspath(String groupId, String artifactId, String version) {
         return camelCatalog.loadRuntimeProviderVersion(groupId,
                 artifactId,
                 version);

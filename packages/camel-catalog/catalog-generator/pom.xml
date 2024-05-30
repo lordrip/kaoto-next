@@ -6,7 +6,6 @@
     <groupId>io.kaoto</groupId>
     <artifactId>kaoto-camel-catalog-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>catalog-generator</artifactId>
   <packaging>jar</packaging>
@@ -21,27 +20,14 @@
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-catalog</artifactId>
-      <version>${version.camel}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-catalog-maven</artifactId>
-      <version>${version.camel}</version>
     </dependency>
-
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-model</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -50,6 +36,12 @@
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.10.2</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

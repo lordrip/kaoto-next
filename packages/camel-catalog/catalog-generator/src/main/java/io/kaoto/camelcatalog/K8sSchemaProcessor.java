@@ -15,22 +15,26 @@
  */
 package io.kaoto.camelcatalog;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Process Kubernetes OpenAPI specification JSON.
  */
 public class K8sSchemaProcessor {
+    private static final Logger LOGGER = Logger.getLogger(K8sSchemaProcessor.class.getName());
     private final ObjectMapper jsonMapper;
     private final ObjectNode openApiSpec;
 
@@ -41,6 +45,7 @@ public class K8sSchemaProcessor {
 
     /**
      * Get k8s definitions schema from its OpenAPI spec.
+     *
      * @param definitions
      * @return
      * @throws Exception
@@ -60,11 +65,17 @@ public class K8sSchemaProcessor {
             definition = removeKubernetesCustomKeywords(definition);
             var nameSplit = name.split("\\.");
             var displayName = nameSplit[nameSplit.length - 1];
-            // ATM we use only few of k8s schemas, so use the short name until we see a conflict
+            // ATM we use only few of k8s schemas, so use the short name until we see a
+            // conflict
             var writer = new StringWriter();
-            JsonGenerator jsonGenerator = new JsonFactory().createGenerator(writer).useDefaultPrettyPrinter();
-            jsonMapper.writeTree(jsonGenerator, definition);
-            answer.put(displayName, writer.toString());
+
+            try (JsonGenerator jsonGenerator = new JsonFactory().createGenerator(writer).useDefaultPrettyPrinter()) {
+                jsonMapper.writeTree(jsonGenerator, definition);
+                answer.put(displayName, writer.toString());
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+            }
+
         }
         return answer;
     }
@@ -76,7 +87,7 @@ public class K8sSchemaProcessor {
             for (JsonNode refParent : definition.findParents("$ref")) {
                 var ref = refParent.get("$ref").asText();
                 if (ref.startsWith("#/components")) {
-                    ((ObjectNode)refParent).put("$ref", ref.replace("#/components/schemas", "#/definitions"));
+                    ((ObjectNode) refParent).put("$ref", ref.replace("#/components/schemas", "#/definitions"));
                     ref = refParent.get("$ref").asText();
                 }
                 var name = ref.replace("#/definitions/", "");
@@ -96,9 +107,9 @@ public class K8sSchemaProcessor {
             if (!node.getKey().startsWith("x-kubernetes")) {
                 var value = node.getValue();
                 if (value.isObject()) {
-                    value = removeKubernetesCustomKeywords((ObjectNode)value);
+                    value = removeKubernetesCustomKeywords((ObjectNode) value);
                 } else if (value.isArray()) {
-                    value = removeKubernetesCustomKeywordsFromArrayNode((ArrayNode)value);
+                    value = removeKubernetesCustomKeywordsFromArrayNode((ArrayNode) value);
                 }
                 modified.set(node.getKey(), value);
             }
@@ -110,9 +121,9 @@ public class K8sSchemaProcessor {
         var modified = jsonMapper.createArrayNode();
         definition.forEach(node -> {
             if (node.isObject()) {
-                node = removeKubernetesCustomKeywords((ObjectNode)node);
+                node = removeKubernetesCustomKeywords((ObjectNode) node);
             } else if (node.isArray()) {
-                node = removeKubernetesCustomKeywordsFromArrayNode((ArrayNode)node);
+                node = removeKubernetesCustomKeywordsFromArrayNode((ArrayNode) node);
             }
             modified.add(node);
         });
