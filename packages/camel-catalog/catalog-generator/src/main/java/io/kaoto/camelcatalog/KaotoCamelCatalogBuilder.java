@@ -190,7 +190,8 @@ public class KaotoCamelCatalogBuilder {
         }
 
         private void processCatalog(CamelYamlDslSchemaProcessor schemaProcessor, Index index) {
-            var catalogProcessor = new CamelCatalogProcessor(jsonMapper, schemaProcessor);
+            var catalogProcessor = new CamelCatalogProcessor(camelCatalogVersionLoader.getCamelCatalog(), jsonMapper,
+                    schemaProcessor);
             try {
                 var catalogMap = catalogProcessor.processCatalog();
                 catalogMap.forEach((name, catalog) -> {
