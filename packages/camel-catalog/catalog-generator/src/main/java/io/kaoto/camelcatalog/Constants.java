@@ -27,8 +27,8 @@ public class Constants {
         public static final String CAMEL_CATALOG_AGGREGATE = "camel-catalog-aggregate";
         public static final String CRD_SCHEMA = "crd-schema";
         public static final String KAMELETS = "kamelets";
-        public static final String KAMELET_BOUNDARIES_KEY = "kameletsBoundaries";
-        public static final String KAMELET_BOUNDARIES_FILENAME = "kamelets-boundaries";
+        public static final String KAMELET_BOUNDARIES_KEY = "kameletBoundaries";
+        public static final String KAMELET_BOUNDARIES_FILENAME = "kamelet-boundaries";
         public static final String KAMELETS_AGGREGATE = "kamelets-aggregate";
 
 }
