@@ -1,0 +1,11 @@
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/Main.java
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/KameletProcessor.java
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/CamelYamlDSLKeysComparator.java
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/Index.java
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/CamelCatalogVersionLoader.java
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/K8sSchemaProcessor.java
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/KaotoCamelCatalogBuilder.java
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/CamelCatalogProcessor.java
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/Constants.java
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/Util.java
+/home/rmartinez/repos/kaoto/packages/catalog-generator/src/main/java/io/kaoto/camelcatalog/CamelYamlDslSchemaProcessor.java

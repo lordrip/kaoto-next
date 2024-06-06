@@ -60,7 +60,6 @@
   <modules>
     <module>kaoto-camel-catalog-maven-plugin</module>
     <module>assembly</module>
-    <module>catalog-generator</module>
   </modules>
 
   <dependencyManagement>

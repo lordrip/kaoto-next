@@ -1,0 +1,13 @@
+io/kaoto/camelcatalog/Constants.class
+io/kaoto/camelcatalog/CamelYamlDslSchemaProcessor.class
+io/kaoto/camelcatalog/Util.class
+io/kaoto/camelcatalog/KaotoCamelCatalogBuilder.class
+io/kaoto/camelcatalog/Main.class
+io/kaoto/camelcatalog/CamelCatalogVersionLoader.class
+io/kaoto/camelcatalog/KaotoCamelCatalogBuilder$KaotoCamelCatalogMojo.class
+io/kaoto/camelcatalog/K8sSchemaProcessor.class
+io/kaoto/camelcatalog/CamelYamlDSLKeysComparator.class
+io/kaoto/camelcatalog/Index.class
+io/kaoto/camelcatalog/KameletProcessor.class
+io/kaoto/camelcatalog/CamelCatalogProcessor.class
+io/kaoto/camelcatalog/Entry.class

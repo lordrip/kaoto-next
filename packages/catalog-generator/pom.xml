@@ -2,45 +2,56 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>io.kaoto</groupId>
-    <artifactId>kaoto-camel-catalog-parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-  </parent>
+  <groupId>io.kaoto</groupId>
   <artifactId>catalog-generator</artifactId>
   <packaging>jar</packaging>
+  <version>0.0.1-SNAPSHOT</version>
   <name>catalog-generator</name>
   <description>
     A Camel Catalog generator for Kaoto.
   </description>
   <url>https://kaoto.io</url>
 
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <version.camel>4.6.0</version.camel>
+    <version.jackson>2.17.1</version.jackson>
+    <version.kubernetes-model>6.10.0</version.kubernetes-model>
+    <version.junit>5.10.2</version.junit>
+  </properties>
+
   <dependencies>
-    <!-- Camel dependencies -->
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-catalog</artifactId>
+      <version>${version.camel}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-catalog-maven</artifactId>
+      <version>${version.camel}</version>
     </dependency>
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-model</artifactId>
+      <version>${version.kubernetes-model}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+      <version>${version.jackson}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
+      <version>${version.jackson}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>5.10.2</version>
+      <version>${version.junit}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
