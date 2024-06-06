@@ -23,12 +23,11 @@ import java.util.logging.Logger;
 
 import org.apache.camel.catalog.CamelCatalog;
 import org.apache.camel.catalog.DefaultCamelCatalog;
-import org.apache.camel.catalog.VersionManager;
 import org.apache.camel.catalog.maven.MavenVersionManager;
 
 public class CamelCatalogVersionLoader {
     private static final Logger LOGGER = Logger.getLogger(CamelCatalogVersionLoader.class.getName());
-    private final VersionManager VERSION_MANAGER = new MavenVersionManager();
+    private final MavenVersionManager VERSION_MANAGER = new MavenVersionManager();
     private CamelCatalog camelCatalog = new DefaultCamelCatalog(false);
     private String camelYamlDSLSchema;
     private String kubernetesSchema;
@@ -67,6 +66,11 @@ public class CamelCatalogVersionLoader {
 
     public boolean loadCamelCatalog(String version) {
         camelCatalog.setVersionManager(VERSION_MANAGER);
+
+        if (version.contains("redhat")) {
+            VERSION_MANAGER.addMavenRepository("central", "https://repo1.maven.org/maven2/");
+            VERSION_MANAGER.addMavenRepository("maven.redhat.ga", "https://maven.repository.redhat.com/ga/");
+        }
 
         return camelCatalog.loadVersion(version);
     }
