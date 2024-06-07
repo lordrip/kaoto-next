@@ -20,11 +20,11 @@ public class CatalogLibrary {
     }
 
     public void addDefinition(CatalogDefinition catalogDefinition) {
-        CatalogLibraryEntry entry = new CatalogLibraryEntry();
-        entry.setName(catalogDefinition.getName());
-        entry.setVersion(catalogDefinition.getVersion());
-        entry.setRuntime(catalogDefinition.getRuntime());
-        entry.setFileName(catalogDefinition.getFileName());
+        CatalogLibraryEntry entry = new CatalogLibraryEntry(
+                catalogDefinition.getName(),
+                catalogDefinition.getVersion(),
+                catalogDefinition.getRuntime(),
+                catalogDefinition.getFileName());
 
         definitions.add(entry);
     }

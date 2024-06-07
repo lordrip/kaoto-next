@@ -41,13 +41,13 @@ public class CamelCatalogProcessor {
     private static final String SET_HEADERS_DEFINITION = "org.apache.camel.model.SetHeadersDefinition";
     private static final String SET_VARIABLES_DEFINITION = "org.apache.camel.model.SetVariablesDefinition";
     private final ObjectMapper jsonMapper;
-    private final CamelCatalog api;
+    private final CamelCatalog camelCatalog;
     private final CamelYamlDslSchemaProcessor schemaProcessor;
 
-    public CamelCatalogProcessor(CamelCatalog catalog, ObjectMapper jsonMapper,
+    public CamelCatalogProcessor(CamelCatalog camelCatalog, ObjectMapper jsonMapper,
             CamelYamlDslSchemaProcessor schemaProcessor) {
         this.jsonMapper = jsonMapper;
-        this.api = catalog;
+        this.camelCatalog = camelCatalog;
         this.schemaProcessor = schemaProcessor;
     }
 
@@ -83,9 +83,9 @@ public class CamelCatalogProcessor {
      */
     public String getComponentCatalog() throws Exception {
         var answer = jsonMapper.createObjectNode();
-        api.findComponentNames().stream().sorted().forEach((name) -> {
+        camelCatalog.findComponentNames().stream().sorted().forEach((name) -> {
             try {
-                var model = (ComponentModel) api.model(Kind.component, name);
+                var model = (ComponentModel) camelCatalog.model(Kind.component, name);
                 var json = JsonMapper.asJsonObject(model).toJson();
                 var catalogNode = (ObjectNode) jsonMapper.readTree(json);
                 generatePropertiesSchema(catalogNode);
@@ -174,7 +174,7 @@ public class CamelCatalogProcessor {
         for (var entry : dataFormatSchemaMap.entrySet()) {
             var dataFormatName = entry.getKey();
             var dataFormatSchema = entry.getValue();
-            var dataFormatCatalog = (EipModel) api.model(Kind.eip, dataFormatName);
+            var dataFormatCatalog = (EipModel) camelCatalog.model(Kind.eip, dataFormatName);
             if (dataFormatCatalog == null) {
                 throw new Exception("DataFormat " + dataFormatName + " is not found in Camel model catalog.");
             }
@@ -201,7 +201,7 @@ public class CamelCatalogProcessor {
         for (var entry : languageSchemaMap.entrySet()) {
             var languageName = entry.getKey();
             var languageSchema = entry.getValue();
-            var languageCatalog = (EipModel) api.model(Kind.eip, languageName);
+            var languageCatalog = (EipModel) camelCatalog.model(Kind.eip, languageName);
             if (languageCatalog == null) {
                 throw new Exception("Language " + languageName + " is not found in Camel model catalog.");
             }
@@ -218,9 +218,9 @@ public class CamelCatalogProcessor {
 
     public String getModelCatalog() throws Exception {
         var answer = jsonMapper.createObjectNode();
-        api.findModelNames().stream().sorted().forEach((name) -> {
+        camelCatalog.findModelNames().stream().sorted().forEach((name) -> {
             try {
-                var model = (EipModel) api.model(Kind.eip, name);
+                var model = (EipModel) camelCatalog.model(Kind.eip, name);
                 var json = JsonMapper.asJsonObject(model).toJson();
                 var catalogNode = (ObjectNode) jsonMapper.readTree(json);
                 if ("from".equals(name)) {
@@ -250,8 +250,8 @@ public class CamelCatalogProcessor {
         var answer = jsonMapper.createObjectNode();
         var processors = schemaProcessor.getProcessors();
         var catalogMap = new LinkedHashMap<String, EipModel>();
-        for (var name : api.findModelNames()) {
-            var modelCatalog = (EipModel) api.model(Kind.eip, name);
+        for (var name : camelCatalog.findModelNames()) {
+            var modelCatalog = (EipModel) camelCatalog.model(Kind.eip, name);
             catalogMap.put(modelCatalog.getJavaType(), modelCatalog);
         }
 
@@ -343,11 +343,11 @@ public class CamelCatalogProcessor {
         var answer = jsonMapper.createObjectNode();
         var entities = schemaProcessor.getEntities();
         var catalogMap = new LinkedHashMap<String, EipModel>();
-        for (var name : api.findModelNames()) {
-            var modelCatalog = (EipModel) api.model(Kind.eip, name);
+        for (var name : camelCatalog.findModelNames()) {
+            var modelCatalog = (EipModel) camelCatalog.model(Kind.eip, name);
             catalogMap.put(name, modelCatalog);
         }
-        InputStream is = api.getClass().getClassLoader()
+        InputStream is = camelCatalog.getClass().getClassLoader()
                 .getResourceAsStream("org/apache/camel/catalog/models-app/bean.json");
         var beanJsonObj = JsonMapper.deserialize(new String(is.readAllBytes()));
         var beanModel = JsonMapper.generateEipModel(beanJsonObj);
@@ -610,7 +610,7 @@ public class CamelCatalogProcessor {
         for (var entry : loadBalancerSchemaMap.entrySet()) {
             var loadBalancerName = entry.getKey();
             var loadBalancerSchema = entry.getValue();
-            var loadBalancerCatalog = (EipModel) api.model(Kind.eip, loadBalancerName);
+            var loadBalancerCatalog = (EipModel) camelCatalog.model(Kind.eip, loadBalancerName);
             if (loadBalancerCatalog == null) {
                 throw new Exception("LoadBalancer " + loadBalancerName + " is not found in Camel model catalog.");
             }

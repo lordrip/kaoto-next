@@ -1,4 +1,4 @@
-package io.kaoto.camelcatalog;
+package io.kaoto.camelcatalog.maven;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +23,10 @@ import java.util.logging.Logger;
 
 import org.apache.camel.catalog.CamelCatalog;
 import org.apache.camel.catalog.DefaultCamelCatalog;
-import org.apache.camel.catalog.maven.MavenVersionManager;
+import org.apache.camel.tooling.maven.MavenArtifact;
+import org.apache.camel.tooling.maven.MavenDownloader;
+import org.apache.camel.tooling.maven.MavenDownloaderImpl;
+import org.apache.camel.tooling.maven.MavenResolutionException;
 
 import io.kaoto.camelcatalog.model.Constants;
 import io.kaoto.camelcatalog.model.MavenCoordinates;
@@ -31,7 +34,7 @@ import io.kaoto.camelcatalog.model.CatalogRuntime;
 
 public class CamelCatalogVersionLoader {
     private static final Logger LOGGER = Logger.getLogger(CamelCatalogVersionLoader.class.getName());
-    private final MavenVersionManager VERSION_MANAGER = new MavenVersionManager();
+    private final KaotoMavenVersionManager KAOTO_VERSION_MANAGER = new KaotoMavenVersionManager();
     private CamelCatalog camelCatalog = new DefaultCamelCatalog(false);
     private String camelYamlDSLSchema;
     private String kubernetesSchema;
@@ -43,6 +46,7 @@ public class CamelCatalogVersionLoader {
 
     public CamelCatalogVersionLoader(CatalogRuntime runtime) {
         this.runtime = runtime;
+        camelCatalog.setVersionManager(KAOTO_VERSION_MANAGER);
     }
 
     public CatalogRuntime getRuntime() {
@@ -78,23 +82,27 @@ public class CamelCatalogVersionLoader {
     }
 
     public boolean loadCamelCatalog(String version) {
-        camelCatalog.setVersionManager(VERSION_MANAGER);
-
         if (version.contains("redhat")) {
-            VERSION_MANAGER.addMavenRepository("central", "https://repo1.maven.org/maven2/");
-            VERSION_MANAGER.addMavenRepository("maven.redhat.ga", "https://maven.repository.redhat.com/ga/");
+            KAOTO_VERSION_MANAGER.addMavenRepository("central", "https://repo1.maven.org/maven2/");
+            KAOTO_VERSION_MANAGER.addMavenRepository("maven.redhat.ga", "https://maven.repository.redhat.com/ga/");
         }
 
         MavenCoordinates mavenCoordinates = getCatalogMavenCoordinates(runtime, version);
 
         return loadDependencyInClasspath(mavenCoordinates);
+        // return camelCatalog.loadVersion(mavenCoordinates.getVersion());
     }
 
     public boolean loadCamelYamlDsl(String version) {
+        if (version.contains("redhat")) {
+            KAOTO_VERSION_MANAGER.addMavenRepository("central", "https://repo1.maven.org/maven2/");
+            KAOTO_VERSION_MANAGER.addMavenRepository("maven.redhat.ga", "https://maven.repository.redhat.com/ga/");
+        }
+
         MavenCoordinates mavenCoordinates = getYamlDslMavenCoordinates(runtime, version);
         boolean isCamelYamlDslLoaded = loadDependencyInClasspath(mavenCoordinates);
 
-        ClassLoader classLoader = VERSION_MANAGER.getClassLoader();
+        ClassLoader classLoader = KAOTO_VERSION_MANAGER.getClassLoader();
         URL resourceURL = classLoader.getResource(Constants.CAMEL_YAML_DSL_ARTIFACT);
         if (resourceURL == null) {
             return false;
@@ -114,7 +122,7 @@ public class CamelCatalogVersionLoader {
     }
 
     public boolean loadKameletBoundaries() {
-        ClassLoader classLoader = VERSION_MANAGER.getClassLoader();
+        ClassLoader classLoader = KAOTO_VERSION_MANAGER.getClassLoader();
 
         URL resourceUrl = classLoader.getResource("kamelet-boundaries");
 
@@ -144,7 +152,7 @@ public class CamelCatalogVersionLoader {
                 version);
         boolean areKameletsLoaded = loadDependencyInClasspath(mavenCoordinates);
 
-        ClassLoader classLoader = VERSION_MANAGER.getClassLoader();
+        ClassLoader classLoader = KAOTO_VERSION_MANAGER.getClassLoader();
         try {
             Iterator<URL> it = classLoader.getResources("kamelets").asIterator();
 
@@ -202,7 +210,7 @@ public class CamelCatalogVersionLoader {
                 version);
         boolean areCamelKCRDsLoaded = loadDependencyInClasspath(mavenCoordinates);
 
-        ClassLoader classLoader = VERSION_MANAGER.getClassLoader();
+        ClassLoader classLoader = KAOTO_VERSION_MANAGER.getClassLoader();
 
         for (String crd : Constants.CAMEL_K_CRDS_ARTIFACTS) {
             URL resourceURL = classLoader.getResource(crd);
@@ -225,7 +233,7 @@ public class CamelCatalogVersionLoader {
     }
 
     public void loadLocalSchemas() {
-        ClassLoader classLoader = VERSION_MANAGER.getClassLoader();
+        ClassLoader classLoader = KAOTO_VERSION_MANAGER.getClassLoader();
         URL schemasFolderUrl = classLoader.getResource("schemas");
 
         try {

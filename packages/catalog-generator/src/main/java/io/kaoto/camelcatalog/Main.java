@@ -7,6 +7,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import io.kaoto.camelcatalog.model.CatalogCliArgument;
 import io.kaoto.camelcatalog.model.CatalogDefinition;
 import io.kaoto.camelcatalog.model.CatalogLibrary;
 import io.kaoto.camelcatalog.model.CatalogRuntime;
@@ -21,26 +22,35 @@ public class Main {
         File outputDirectory = new File(System.getProperty("user.dir") + "/dist");
         outputDirectory.mkdirs();
 
-        List.of("4.4.0", "4.6.0").forEach(version -> {
-            File catalogDefinitionFolder = outputDirectory.toPath().resolve(version).toFile();
-            catalogDefinitionFolder.mkdirs();
+        List.of(
+                new CatalogCliArgument(CatalogRuntime.Main, "4.4.0"),
+                new CatalogCliArgument(CatalogRuntime.Main, "4.4.0.redhat-00019"),
+                new CatalogCliArgument(CatalogRuntime.Main, "4.6.0"),
+                new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0")
+                // new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0.redhat-00004"),
+                // new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0"),
+                // new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0.redhat-00014")
+                ).forEach(cliCatalog -> {
+                    String catalogFolderName = cliCatalog.runtime() + "-" + cliCatalog.version();
+                    File catalogDefinitionFolder = outputDirectory.toPath().resolve(catalogFolderName).toFile();
+                    catalogDefinitionFolder.mkdirs();
 
-            CatalogGeneratorBuilder builder = new CatalogGeneratorBuilder();
-            var catalogGenerator = builder.withRuntime(CatalogRuntime.fromString("main"))
-                    .withCamelCatalogVersion(version)
-                    .withKameletsVersion("4.6.0")
-                    .withCamelKCRDsVersion("2.3.1")
-                    .withOutputDirectory(catalogDefinitionFolder)
-                    .build();
+                    CatalogGeneratorBuilder builder = new CatalogGeneratorBuilder();
+                    var catalogGenerator = builder.withRuntime(cliCatalog.runtime())
+                            .withCamelCatalogVersion(cliCatalog.version())
+                            .withKameletsVersion("4.6.0")
+                            .withCamelKCRDsVersion("2.3.1")
+                            .withOutputDirectory(catalogDefinitionFolder)
+                            .build();
 
-            CatalogDefinition catalogDefinition = catalogGenerator.generate();
-            File indexFile = catalogDefinitionFolder.toPath().resolve(catalogDefinition.getFileName()).toFile();
-            File relateIndexFile = outputDirectory.toPath().relativize(indexFile.toPath()).toFile();
+                    CatalogDefinition catalogDefinition = catalogGenerator.generate();
+                    File indexFile = catalogDefinitionFolder.toPath().resolve(catalogDefinition.getFileName()).toFile();
+                    File relateIndexFile = outputDirectory.toPath().relativize(indexFile.toPath()).toFile();
 
-            catalogDefinition.setFileName(relateIndexFile.toString());
+                    catalogDefinition.setFileName(relateIndexFile.toString());
 
-            library.addDefinition(catalogDefinition);
-        });
+                    library.addDefinition(catalogDefinition);
+                });
 
         var indexFile = outputDirectory.toPath().resolve("index.json").toFile();
         try {

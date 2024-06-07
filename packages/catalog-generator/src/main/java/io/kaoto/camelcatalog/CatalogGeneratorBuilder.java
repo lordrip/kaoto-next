@@ -45,6 +45,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
+import io.kaoto.camelcatalog.maven.CamelCatalogVersionLoader;
 import io.kaoto.camelcatalog.model.CatalogDefinition;
 import io.kaoto.camelcatalog.model.CatalogDefinitionEntry;
 import io.kaoto.camelcatalog.model.CatalogRuntime;
@@ -100,7 +101,7 @@ public class CatalogGeneratorBuilder {
     public CatalogGenerator build() {
         CamelCatalogVersionLoader camelCatalogVersionLoader = new CamelCatalogVersionLoader(runtime);
         var catalogGenerator = new CatalogGenerator(camelCatalogVersionLoader, runtime, outputDirectory);
-        catalogGenerator.cameCatalogVersion = camelCatalogVersion;
+        catalogGenerator.camelCatalogVersion = camelCatalogVersion;
         catalogGenerator.kameletsVersion = kameletsVersion;
         catalogGenerator.camelKCRDsVersion = camelKCRDsVersion;
         return catalogGenerator;
@@ -115,7 +116,7 @@ public class CatalogGeneratorBuilder {
 
         private CamelCatalogVersionLoader camelCatalogVersionLoader;
         private File outputDirectory;
-        private String cameCatalogVersion;
+        private String camelCatalogVersion;
         private String kameletsVersion;
         private String camelKCRDsVersion;
 
@@ -126,8 +127,8 @@ public class CatalogGeneratorBuilder {
         }
 
         public CatalogDefinition generate() {
-            camelCatalogVersionLoader.loadCamelCatalog(cameCatalogVersion);
-            camelCatalogVersionLoader.loadCamelYamlDsl(cameCatalogVersion);
+            camelCatalogVersionLoader.loadCamelCatalog(camelCatalogVersion);
+            camelCatalogVersionLoader.loadCamelYamlDsl(camelCatalogVersion);
             camelCatalogVersionLoader.loadKameletBoundaries();
             camelCatalogVersionLoader.loadKamelets(kameletsVersion);
             camelCatalogVersionLoader.loadKubernetesSchema();
@@ -148,7 +149,7 @@ public class CatalogGeneratorBuilder {
                         Util.generateHash(catalogDefinition.toString()));
 
                 File indexFile = outputDirectory.toPath().resolve(filename).toFile();
-                catalogDefinition.setVersion(cameCatalogVersion);
+                catalogDefinition.setVersion(camelCatalogVersion);
                 catalogDefinition.setRuntime(camelCatalogVersionLoader.getRuntime());
                 catalogDefinition.setFileName(indexFile.getName());
 
@@ -179,7 +180,7 @@ public class CatalogGeneratorBuilder {
                 var indexEntry = new CatalogDefinitionEntry(
                         CAMEL_YAML_DSL_FILE_NAME,
                         "Camel YAML DSL JSON schema",
-                        cameCatalogVersion,
+                        camelCatalogVersion,
                         outputFileName);
                 index.getSchemas().put(CAMEL_YAML_DSL_FILE_NAME, indexEntry);
             } catch (Exception e) {
@@ -206,7 +207,7 @@ public class CatalogGeneratorBuilder {
                         var subSchemaIndexEntry = new CatalogDefinitionEntry(
                                 name,
                                 "Camel YAML DSL JSON schema: " + name,
-                                cameCatalogVersion,
+                                camelCatalogVersion,
                                 subSchemaFileName);
                         index.getSchemas().put(name, subSchemaIndexEntry);
                     } catch (Exception e) {
@@ -256,7 +257,7 @@ public class CatalogGeneratorBuilder {
                         var indexEntry = new CatalogDefinitionEntry(
                                 name,
                                 "Aggregated Camel catalog for " + name,
-                                cameCatalogVersion,
+                                camelCatalogVersion,
                                 outputFileName);
                         index.getCatalogs().put(name, indexEntry);
                     } catch (Exception e) {
