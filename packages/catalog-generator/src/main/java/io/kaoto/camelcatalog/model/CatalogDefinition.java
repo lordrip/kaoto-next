@@ -18,12 +18,15 @@ package io.kaoto.camelcatalog.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class CatalogDefinition {
     private String name;
     private String version;
-    private String runtime;
+    private CatalogRuntime runtime;
     private Map<String, CatalogDefinitionEntry> catalogs = new HashMap<>();
     private Map<String, CatalogDefinitionEntry> schemas = new HashMap<>();
+    private String fileName;
 
     public String getName() {
         return name;
@@ -41,11 +44,11 @@ public class CatalogDefinition {
         this.version = version;
     }
 
-    public String getRuntime() {
+    public CatalogRuntime getRuntime() {
         return runtime;
     }
 
-    public void setRuntime(String runtime) {
+    public void setRuntime(CatalogRuntime runtime) {
         this.runtime = runtime;
     }
 
@@ -55,5 +58,14 @@ public class CatalogDefinition {
 
     public Map<String, CatalogDefinitionEntry> getSchemas() {
         return schemas;
+    }
+
+    @JsonIgnore
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 }

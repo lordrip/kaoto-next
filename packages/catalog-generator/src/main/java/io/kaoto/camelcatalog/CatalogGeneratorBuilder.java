@@ -125,7 +125,7 @@ public class CatalogGeneratorBuilder {
             this.outputDirectory = outputDirectory;
         }
 
-        public String generate() {
+        public CatalogDefinition generate() {
             camelCatalogVersionLoader.loadCamelCatalog(cameCatalogVersion);
             camelCatalogVersionLoader.loadCamelYamlDsl(cameCatalogVersion);
             camelCatalogVersionLoader.loadKameletBoundaries();
@@ -134,19 +134,27 @@ public class CatalogGeneratorBuilder {
             camelCatalogVersionLoader.loadCamelKCRDs(camelKCRDsVersion);
             camelCatalogVersionLoader.loadLocalSchemas();
 
-            var index = new CatalogDefinition();
-            var yamlDslSchemaProcessor = processCamelSchema(index);
-            processCatalog(yamlDslSchemaProcessor, index);
-            processKameletBoundaries(index);
-            processKamelets(index);
-            processK8sSchema(index);
-            processKameletsCRDs(index);
-            processAdditionalSchemas(index);
+            var catalogDefinition = new CatalogDefinition();
+            var yamlDslSchemaProcessor = processCamelSchema(catalogDefinition);
+            processCatalog(yamlDslSchemaProcessor, catalogDefinition);
+            processKameletBoundaries(catalogDefinition);
+            processKamelets(catalogDefinition);
+            processK8sSchema(catalogDefinition);
+            processKameletsCRDs(catalogDefinition);
+            processAdditionalSchemas(catalogDefinition);
 
             try {
-                var indexFile = outputDirectory.toPath().resolve("index.json").toFile();
-                jsonMapper.writerWithDefaultPrettyPrinter().writeValue(indexFile, index);
-                return indexFile.getAbsolutePath();
+                String filename = String.format("%s-%s.json", "index",
+                        Util.generateHash(catalogDefinition.toString()));
+
+                File indexFile = outputDirectory.toPath().resolve(filename).toFile();
+                catalogDefinition.setVersion(cameCatalogVersion);
+                catalogDefinition.setRuntime(camelCatalogVersionLoader.getRuntime());
+                catalogDefinition.setFileName(indexFile.getName());
+
+                jsonMapper.writerWithDefaultPrettyPrinter().writeValue(indexFile, catalogDefinition);
+
+                return catalogDefinition;
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
