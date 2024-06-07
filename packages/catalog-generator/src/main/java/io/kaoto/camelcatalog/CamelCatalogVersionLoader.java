@@ -25,6 +25,10 @@ import org.apache.camel.catalog.CamelCatalog;
 import org.apache.camel.catalog.DefaultCamelCatalog;
 import org.apache.camel.catalog.maven.MavenVersionManager;
 
+import io.kaoto.camelcatalog.model.Constants;
+import io.kaoto.camelcatalog.model.MavenCoordinates;
+import io.kaoto.camelcatalog.model.CatalogRuntime;
+
 public class CamelCatalogVersionLoader {
     private static final Logger LOGGER = Logger.getLogger(CamelCatalogVersionLoader.class.getName());
     private final MavenVersionManager VERSION_MANAGER = new MavenVersionManager();
@@ -35,6 +39,15 @@ public class CamelCatalogVersionLoader {
     private List<String> kamelets = new ArrayList<>();
     private List<String> camelKCRDs = new ArrayList<>();
     private Map<String, String> localSchemas = new HashMap<>();
+    private CatalogRuntime runtime;
+
+    public CamelCatalogVersionLoader(CatalogRuntime runtime) {
+        this.runtime = runtime;
+    }
+
+    public CatalogRuntime getRuntime() {
+        return runtime;
+    }
 
     public CamelCatalog getCamelCatalog() {
         return camelCatalog;
@@ -72,13 +85,14 @@ public class CamelCatalogVersionLoader {
             VERSION_MANAGER.addMavenRepository("maven.redhat.ga", "https://maven.repository.redhat.com/ga/");
         }
 
-        return camelCatalog.loadVersion(version);
+        MavenCoordinates mavenCoordinates = getCatalogMavenCoordinates(runtime, version);
+
+        return loadDependencyInClasspath(mavenCoordinates);
     }
 
     public boolean loadCamelYamlDsl(String version) {
-        boolean isCamelYamlDslLoaded = loadDependencyInClasspath(Constants.APACHE_CAMEL_ORG,
-                Constants.CAMEL_YAML_DSL_PACKAGE,
-                version);
+        MavenCoordinates mavenCoordinates = getYamlDslMavenCoordinates(runtime, version);
+        boolean isCamelYamlDslLoaded = loadDependencyInClasspath(mavenCoordinates);
 
         ClassLoader classLoader = VERSION_MANAGER.getClassLoader();
         URL resourceURL = classLoader.getResource(Constants.CAMEL_YAML_DSL_ARTIFACT);
@@ -125,9 +139,10 @@ public class CamelCatalogVersionLoader {
     }
 
     public boolean loadKamelets(String version) {
-        boolean areKameletsLoaded = loadDependencyInClasspath(Constants.APACHE_CAMEL_KAMELETS_ORG,
+        MavenCoordinates mavenCoordinates = new MavenCoordinates(Constants.APACHE_CAMEL_KAMELETS_ORG,
                 Constants.KAMELETS_PACKAGE,
                 version);
+        boolean areKameletsLoaded = loadDependencyInClasspath(mavenCoordinates);
 
         ClassLoader classLoader = VERSION_MANAGER.getClassLoader();
         try {
@@ -182,9 +197,10 @@ public class CamelCatalogVersionLoader {
     }
 
     public boolean loadCamelKCRDs(String version) {
-        boolean areCamelKCRDsLoaded = loadDependencyInClasspath(Constants.APACHE_CAMEL_K_ORG,
+        MavenCoordinates mavenCoordinates = new MavenCoordinates(Constants.APACHE_CAMEL_K_ORG,
                 Constants.CAMEL_K_CRDS_PACKAGE,
                 version);
+        boolean areCamelKCRDsLoaded = loadDependencyInClasspath(mavenCoordinates);
 
         ClassLoader classLoader = VERSION_MANAGER.getClassLoader();
 
@@ -231,15 +247,40 @@ public class CamelCatalogVersionLoader {
         }
     }
 
+    private MavenCoordinates getCatalogMavenCoordinates(CatalogRuntime runtime, String version) {
+        switch (runtime) {
+            case Quarkus:
+                return new MavenCoordinates(Constants.APACHE_CAMEL_ORG + ".quarkus", "camel-quarkus-catalog", version);
+            case SpringBoot:
+                return new MavenCoordinates(Constants.APACHE_CAMEL_ORG + ".springboot", "catalog",
+                        version);
+            default:
+                return new MavenCoordinates(Constants.APACHE_CAMEL_ORG, "camel-catalog", version);
+        }
+    }
+
+    private MavenCoordinates getYamlDslMavenCoordinates(CatalogRuntime runtime, String version) {
+        switch (runtime) {
+            case Quarkus:
+                return new MavenCoordinates(Constants.APACHE_CAMEL_ORG + ".quarkus", "camel-quarkus-yaml-dsl", version);
+            case SpringBoot:
+                return new MavenCoordinates(Constants.APACHE_CAMEL_ORG + ".springboot", "catalog",
+                        version);
+            default:
+                return new MavenCoordinates(Constants.APACHE_CAMEL_ORG,
+                        Constants.CAMEL_YAML_DSL_PACKAGE,
+                        version);
+        }
+    }
+
     /*
      * This method is used to load a dependency in the classpath. This is a
      * workaround
      * to load dependencies that are not in the classpath, while the Kamel Catalog
      * exposes a method to load dependencies in the classpath.
      */
-    private boolean loadDependencyInClasspath(String groupId, String artifactId, String version) {
-        return camelCatalog.loadRuntimeProviderVersion(groupId,
-                artifactId,
-                version);
+    private boolean loadDependencyInClasspath(MavenCoordinates mavenCoordinates) {
+        return camelCatalog.loadRuntimeProviderVersion(mavenCoordinates.getGroupId(), mavenCoordinates.getArtifactId(),
+                mavenCoordinates.getVersion());
     }
 }

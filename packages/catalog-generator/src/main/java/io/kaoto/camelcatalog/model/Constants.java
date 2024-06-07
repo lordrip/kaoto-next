@@ -1,8 +1,13 @@
-package io.kaoto.camelcatalog;
+package io.kaoto.camelcatalog.model;
 
 import java.util.List;
 
 public class Constants {
+        public static final String COMPONENTS = "components";
+        public static final String DATAFORMATS = "dataformats";
+        public static final String LANGUAGES = "languages";
+        public static final String MODELS = "models";
+
         public static final String APACHE_CAMEL_ORG = "org.apache.camel";
         public static final String APACHE_CAMEL_KAMELETS_ORG = APACHE_CAMEL_ORG + ".kamelets";
         public static final String APACHE_CAMEL_K_ORG = APACHE_CAMEL_ORG + ".k";

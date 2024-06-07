@@ -15,15 +15,15 @@
  */
 package io.kaoto.camelcatalog;
 
-import static io.kaoto.camelcatalog.Constants.CAMEL_CATALOG_AGGREGATE;
-import static io.kaoto.camelcatalog.Constants.CAMEL_YAML_DSL_FILE_NAME;
-import static io.kaoto.camelcatalog.Constants.CRD_SCHEMA;
-import static io.kaoto.camelcatalog.Constants.K8S_V1_OPENAPI;
-import static io.kaoto.camelcatalog.Constants.KAMELETS;
-import static io.kaoto.camelcatalog.Constants.KAMELETS_AGGREGATE;
-import static io.kaoto.camelcatalog.Constants.KAMELET_BOUNDARIES_FILENAME;
-import static io.kaoto.camelcatalog.Constants.KAMELET_BOUNDARIES_KEY;
-import static io.kaoto.camelcatalog.Constants.KUBERNETES_DEFINITIONS;
+import static io.kaoto.camelcatalog.model.Constants.CAMEL_CATALOG_AGGREGATE;
+import static io.kaoto.camelcatalog.model.Constants.CAMEL_YAML_DSL_FILE_NAME;
+import static io.kaoto.camelcatalog.model.Constants.CRD_SCHEMA;
+import static io.kaoto.camelcatalog.model.Constants.K8S_V1_OPENAPI;
+import static io.kaoto.camelcatalog.model.Constants.KAMELETS;
+import static io.kaoto.camelcatalog.model.Constants.KAMELETS_AGGREGATE;
+import static io.kaoto.camelcatalog.model.Constants.KAMELET_BOUNDARIES_FILENAME;
+import static io.kaoto.camelcatalog.model.Constants.KAMELET_BOUNDARIES_KEY;
+import static io.kaoto.camelcatalog.model.Constants.KUBERNETES_DEFINITIONS;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -45,6 +45,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
+import io.kaoto.camelcatalog.model.CatalogDefinition;
+import io.kaoto.camelcatalog.model.CatalogDefinitionEntry;
+import io.kaoto.camelcatalog.model.CatalogRuntime;
 
 /**
  * Collects the camel metadata files such as catalog and schema and
@@ -61,49 +64,68 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition
  * In addition to what is generated from above input files, this plugin
  * generates index.json file that holds the list of all the generated.
  */
-public class KaotoCamelCatalogBuilder {
+public class CatalogGeneratorBuilder {
 
+    private CatalogRuntime runtime;
     private String camelCatalogVersion;
     private String kameletsVersion;
     private String camelKCRDsVersion;
+    private File outputDirectory;
 
-    public KaotoCamelCatalogBuilder withCamelCatalogVersion(String camelCatalogVersion) {
+    public CatalogGeneratorBuilder withRuntime(CatalogRuntime runtime) {
+        this.runtime = runtime;
+        return this;
+    }
+
+    public CatalogGeneratorBuilder withCamelCatalogVersion(String camelCatalogVersion) {
         this.camelCatalogVersion = camelCatalogVersion;
         return this;
     }
 
-    public KaotoCamelCatalogBuilder withKameletsVersion(String kameletsVersion) {
+    public CatalogGeneratorBuilder withKameletsVersion(String kameletsVersion) {
         this.kameletsVersion = kameletsVersion;
         return this;
     }
 
-    public KaotoCamelCatalogBuilder withCamelKCRDsVersion(String camelKCRDsVersion) {
+    public CatalogGeneratorBuilder withCamelKCRDsVersion(String camelKCRDsVersion) {
         this.camelKCRDsVersion = camelKCRDsVersion;
         return this;
     }
 
-    public KaotoCamelCatalogMojo build() {
-        var mojo = new KaotoCamelCatalogMojo();
-        mojo.cameCatalogVersion = camelCatalogVersion;
-        mojo.kameletsVersion = kameletsVersion;
-        mojo.camelKCRDsVersion = camelKCRDsVersion;
-        return mojo;
+    public CatalogGeneratorBuilder withOutputDirectory(File outputDirectory) {
+        this.outputDirectory = outputDirectory;
+        return this;
     }
 
-    class KaotoCamelCatalogMojo {
-        private static final Logger LOGGER = Logger.getLogger(KaotoCamelCatalogMojo.class.getName());
+    public CatalogGenerator build() {
+        CamelCatalogVersionLoader camelCatalogVersionLoader = new CamelCatalogVersionLoader(runtime);
+        var catalogGenerator = new CatalogGenerator(camelCatalogVersionLoader, runtime, outputDirectory);
+        catalogGenerator.cameCatalogVersion = camelCatalogVersion;
+        catalogGenerator.kameletsVersion = kameletsVersion;
+        catalogGenerator.camelKCRDsVersion = camelKCRDsVersion;
+        return catalogGenerator;
+    }
+
+    class CatalogGenerator {
+        private static final Logger LOGGER = Logger.getLogger(CatalogGenerator.class.getName());
 
         private static final ObjectMapper jsonMapper = new ObjectMapper()
                 .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
         private static final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
-        private CamelCatalogVersionLoader camelCatalogVersionLoader = new CamelCatalogVersionLoader();
-        private File outputDirectory = new File(System.getProperty("user.dir") + "/dist");
+        private CamelCatalogVersionLoader camelCatalogVersionLoader;
+        private File outputDirectory;
         private String cameCatalogVersion;
         private String kameletsVersion;
         private String camelKCRDsVersion;
 
-        public void generate() {
+        public CatalogGenerator(CamelCatalogVersionLoader camelCatalogVersionLoader, CatalogRuntime runtime,
+                File outputDirectory) {
+            this.camelCatalogVersionLoader = camelCatalogVersionLoader;
+            this.outputDirectory = outputDirectory;
+        }
+
+        public String generate() {
             camelCatalogVersionLoader.loadCamelCatalog(cameCatalogVersion);
             camelCatalogVersionLoader.loadCamelYamlDsl(cameCatalogVersion);
             camelCatalogVersionLoader.loadKameletBoundaries();
@@ -112,8 +134,7 @@ public class KaotoCamelCatalogBuilder {
             camelCatalogVersionLoader.loadCamelKCRDs(camelKCRDsVersion);
             camelCatalogVersionLoader.loadLocalSchemas();
 
-            outputDirectory.mkdirs();
-            var index = new Index();
+            var index = new CatalogDefinition();
             var yamlDslSchemaProcessor = processCamelSchema(index);
             processCatalog(yamlDslSchemaProcessor, index);
             processKameletBoundaries(index);
@@ -125,12 +146,15 @@ public class KaotoCamelCatalogBuilder {
             try {
                 var indexFile = outputDirectory.toPath().resolve("index.json").toFile();
                 jsonMapper.writerWithDefaultPrettyPrinter().writeValue(indexFile, index);
+                return indexFile.getAbsolutePath();
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
+
+            return null;
         }
 
-        private CamelYamlDslSchemaProcessor processCamelSchema(Index index) {
+        private CamelYamlDslSchemaProcessor processCamelSchema(CatalogDefinition index) {
             if (camelCatalogVersionLoader.getCamelYamlDslSchema() == null) {
                 LOGGER.severe("Camel YAML DSL JSON Schema is not loaded");
                 return null;
@@ -144,7 +168,7 @@ public class KaotoCamelCatalogBuilder {
 
                 Files.writeString(output, camelCatalogVersionLoader.getCamelYamlDslSchema());
 
-                var indexEntry = new Entry(
+                var indexEntry = new CatalogDefinitionEntry(
                         CAMEL_YAML_DSL_FILE_NAME,
                         "Camel YAML DSL JSON schema",
                         cameCatalogVersion,
@@ -171,7 +195,7 @@ public class KaotoCamelCatalogBuilder {
                         var subSchemaPath = outputDirectory.toPath().resolve(subSchemaFileName);
                         subSchemaPath.getParent().toFile().mkdirs();
                         Files.writeString(subSchemaPath, subSchema);
-                        var subSchemaIndexEntry = new Entry(
+                        var subSchemaIndexEntry = new CatalogDefinitionEntry(
                                 name,
                                 "Camel YAML DSL JSON schema: " + name,
                                 cameCatalogVersion,
@@ -189,7 +213,7 @@ public class KaotoCamelCatalogBuilder {
             }
         }
 
-        private void processCatalog(CamelYamlDslSchemaProcessor schemaProcessor, Index index) {
+        private void processCatalog(CamelYamlDslSchemaProcessor schemaProcessor, CatalogDefinition index) {
             var catalogProcessor = new CamelCatalogProcessor(camelCatalogVersionLoader.getCamelCatalog(), jsonMapper,
                     schemaProcessor);
             try {
@@ -221,7 +245,7 @@ public class KaotoCamelCatalogBuilder {
                                 "%s-%s-%s.json", CAMEL_CATALOG_AGGREGATE, name, Util.generateHash(catalog));
                         var output = outputDirectory.toPath().resolve(outputFileName);
                         Files.writeString(output, catalog);
-                        var indexEntry = new Entry(
+                        var indexEntry = new CatalogDefinitionEntry(
                                 name,
                                 "Aggregated Camel catalog for " + name,
                                 cameCatalogVersion,
@@ -236,7 +260,7 @@ public class KaotoCamelCatalogBuilder {
             }
         }
 
-        private void processKameletBoundaries(Index index) {
+        private void processKameletBoundaries(CatalogDefinition index) {
             if (camelCatalogVersionLoader.getKameletBoundaries().isEmpty()) {
                 LOGGER.severe("Kamelet boundaries are not loaded");
                 return;
@@ -247,7 +271,7 @@ public class KaotoCamelCatalogBuilder {
             index.getCatalogs().put(indexEntry.name(), indexEntry);
         }
 
-        private void processKamelets(Index index) {
+        private void processKamelets(CatalogDefinition index) {
             if (camelCatalogVersionLoader.getKamelets().isEmpty()) {
                 LOGGER.severe("Kamelets are not loaded");
                 return;
@@ -258,7 +282,8 @@ public class KaotoCamelCatalogBuilder {
             index.getCatalogs().put(indexEntry.name(), indexEntry);
         }
 
-        private Entry getKameletsEntry(List<String> kamelets, String name, String filename, String description) {
+        private CatalogDefinitionEntry getKameletsEntry(List<String> kamelets, String name, String filename,
+                String description) {
             var root = jsonMapper.createObjectNode();
 
             try {
@@ -278,7 +303,7 @@ public class KaotoCamelCatalogBuilder {
 
                     Files.write(output, rootBytes);
 
-                    return new Entry(
+                    return new CatalogDefinitionEntry(
                             name,
                             description,
                             kameletsVersion,
@@ -305,7 +330,7 @@ public class KaotoCamelCatalogBuilder {
             }
         }
 
-        private void processK8sSchema(Index index) {
+        private void processK8sSchema(CatalogDefinition index) {
             if (camelCatalogVersionLoader.getKubernetesSchema() == null) {
                 LOGGER.severe("Kubernetes JSON Schema is not loaded");
             }
@@ -321,7 +346,7 @@ public class KaotoCamelCatalogBuilder {
                             Util.generateHash(schema));
                     var output = outputDirectory.toPath().resolve(outputFileName);
                     Files.writeString(output, schema);
-                    var indexEntry = new Entry(
+                    var indexEntry = new CatalogDefinitionEntry(
                             name,
                             "Kubernetes OpenAPI JSON schema: " + name,
                             "v1",
@@ -333,7 +358,7 @@ public class KaotoCamelCatalogBuilder {
             }
         }
 
-        private void processKameletsCRDs(Index index) {
+        private void processKameletsCRDs(CatalogDefinition index) {
             if (camelCatalogVersionLoader.getCamelKCRDs().isEmpty()) {
                 LOGGER.severe("CamelK CRDs are not loaded");
                 return;
@@ -344,7 +369,7 @@ public class KaotoCamelCatalogBuilder {
             });
         }
 
-        private void processKameletCRD(String crdString, Index index) {
+        private void processKameletCRD(String crdString, CatalogDefinition index) {
             try {
                 var crd = yamlMapper.readValue(crdString, CustomResourceDefinition.class);
                 var schema = crd.getSpec().getVersions().get(0).getSchema().getOpenAPIV3Schema();
@@ -358,7 +383,7 @@ public class KaotoCamelCatalogBuilder {
                 Files.write(output, bytes);
                 var description = name;
 
-                var indexEntry = new Entry(
+                var indexEntry = new CatalogDefinitionEntry(
                         name,
                         description,
                         camelKCRDsVersion,
@@ -369,7 +394,7 @@ public class KaotoCamelCatalogBuilder {
             }
         }
 
-        private void processAdditionalSchemas(Index index) {
+        private void processAdditionalSchemas(CatalogDefinition index) {
             if (camelCatalogVersionLoader.getLocalSchemas().isEmpty()) {
                 LOGGER.severe("Local schemas are not loaded");
                 return;
@@ -387,7 +412,7 @@ public class KaotoCamelCatalogBuilder {
 
                     Files.writeString(output, localSchemaEntry.getValue());
 
-                    var indexEntry = new Entry(
+                    var indexEntry = new CatalogDefinitionEntry(
                             name,
                             description,
                             "1",
