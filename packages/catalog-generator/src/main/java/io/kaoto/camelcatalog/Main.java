@@ -20,15 +20,24 @@ public class Main {
         CatalogLibrary library = new CatalogLibrary();
 
         File outputDirectory = new File(System.getProperty("user.dir") + "/dist");
-        outputDirectory.mkdirs();
+        if (!outputDirectory.exists()) {
+            outputDirectory.mkdirs();
+        } else {
+            File[] files = outputDirectory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    file.delete();
+                }
+            }
+        }
 
         List.of(
-                new CatalogCliArgument(CatalogRuntime.Main, "4.4.0"),
+                new CatalogCliArgument(CatalogRuntime.Main, "4.4.0")
                 // new CatalogCliArgument(CatalogRuntime.Main, "4.4.0.redhat-00019"),
                 // new CatalogCliArgument(CatalogRuntime.Main, "4.6.0"),
-                new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0"),
+                // new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0"),
                 // new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0.redhat-00004"),
-                new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0")
+                // new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0")
                 // new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0.redhat-00014")
                 ).forEach(cliCatalog -> {
                     String catalogFolderName = cliCatalog.runtime() + "-" + cliCatalog.version();
