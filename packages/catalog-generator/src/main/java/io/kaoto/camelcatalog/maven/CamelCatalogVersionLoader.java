@@ -23,6 +23,9 @@ import java.util.logging.Logger;
 
 import org.apache.camel.catalog.CamelCatalog;
 import org.apache.camel.catalog.DefaultCamelCatalog;
+import org.apache.camel.catalog.DefaultRuntimeProvider;
+import org.apache.camel.catalog.quarkus.QuarkusRuntimeProvider;
+import org.apache.camel.springboot.catalog.SpringBootRuntimeProvider;
 
 import io.kaoto.camelcatalog.model.CatalogRuntime;
 import io.kaoto.camelcatalog.model.Constants;
@@ -84,9 +87,25 @@ public class CamelCatalogVersionLoader {
         }
 
         MavenCoordinates mavenCoordinates = getCatalogMavenCoordinates(runtime, version);
+        boolean camelCatalogLoaded = loadDependencyInClasspath(mavenCoordinates);
 
-        return loadDependencyInClasspath(mavenCoordinates);
-        // return camelCatalog.loadVersion(mavenCoordinates.getVersion());
+        /**
+         * Check the current runtime, so we can apply the corresponding RuntimeProvider
+         * to the catalog
+         */
+        switch (runtime) {
+            case Quarkus:
+                camelCatalog.setRuntimeProvider(new QuarkusRuntimeProvider());
+                break;
+            case SpringBoot:
+                camelCatalog.setRuntimeProvider(new SpringBootRuntimeProvider());
+                break;
+            default:
+                camelCatalog.setRuntimeProvider(new DefaultRuntimeProvider());
+                break;
+        }
+
+        return camelCatalogLoaded;
     }
 
     public boolean loadCamelYamlDsl(String version) {

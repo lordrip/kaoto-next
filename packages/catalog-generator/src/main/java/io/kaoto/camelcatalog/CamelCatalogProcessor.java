@@ -91,7 +91,7 @@ public class CamelCatalogProcessor {
                 generatePropertiesSchema(catalogNode);
                 answer.set(name, catalogNode);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                System.out.println("Error processing component " + name + ": " + e.getMessage());
             }
         });
         StringWriter writer = new StringWriter();
