@@ -44,7 +44,7 @@ public class KaotoMavenVersionManager extends MavenVersionManager {
 
     public KaotoMavenVersionManager() {
         this(new MavenDownloaderImpl());
-        super.setClassLoader(new KaotoOpenURLClassLoader());
+        this.setClassLoader(new KaotoOpenURLClassLoader());
     }
 
     /**
@@ -80,7 +80,12 @@ public class KaotoMavenVersionManager extends MavenVersionManager {
             String gav = String.format("%s:%s:%s", groupId, artifactId, version);
             resolve(mavenDownloader, gav, version.contains("SNAPSHOT"));
 
-            this.runtimeProviderVersion = version;
+            if (artifactId.contains("catalog")) {
+                this.version = version;
+            } else {
+                this.runtimeProviderVersion = version;
+            }
+
             return true;
         } catch (Exception e) {
             if (log) {
@@ -129,9 +134,6 @@ public class KaotoMavenVersionManager extends MavenVersionManager {
         }
         if (getClassLoader() != null && is == null) {
             is = getClassLoader().getResourceAsStream(name);
-        }
-        if (is == null) {
-            is = MavenVersionManager.class.getClassLoader().getResourceAsStream(name);
         }
 
         return is;
