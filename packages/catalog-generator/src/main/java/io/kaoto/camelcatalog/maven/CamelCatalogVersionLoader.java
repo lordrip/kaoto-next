@@ -23,14 +23,10 @@ import java.util.logging.Logger;
 
 import org.apache.camel.catalog.CamelCatalog;
 import org.apache.camel.catalog.DefaultCamelCatalog;
-import org.apache.camel.tooling.maven.MavenArtifact;
-import org.apache.camel.tooling.maven.MavenDownloader;
-import org.apache.camel.tooling.maven.MavenDownloaderImpl;
-import org.apache.camel.tooling.maven.MavenResolutionException;
 
+import io.kaoto.camelcatalog.model.CatalogRuntime;
 import io.kaoto.camelcatalog.model.Constants;
 import io.kaoto.camelcatalog.model.MavenCoordinates;
-import io.kaoto.camelcatalog.model.CatalogRuntime;
 
 public class CamelCatalogVersionLoader {
     private static final Logger LOGGER = Logger.getLogger(CamelCatalogVersionLoader.class.getName());
@@ -260,7 +256,8 @@ public class CamelCatalogVersionLoader {
             case Quarkus:
                 return new MavenCoordinates(Constants.APACHE_CAMEL_ORG + ".quarkus", "camel-quarkus-catalog", version);
             case SpringBoot:
-                return new MavenCoordinates(Constants.APACHE_CAMEL_ORG + ".springboot", "catalog",
+                return new MavenCoordinates(Constants.APACHE_CAMEL_ORG + ".springboot",
+                        "camel-catalog-provider-springboot",
                         version);
             default:
                 return new MavenCoordinates(Constants.APACHE_CAMEL_ORG, "camel-catalog", version);
@@ -272,7 +269,7 @@ public class CamelCatalogVersionLoader {
             case Quarkus:
                 return new MavenCoordinates(Constants.APACHE_CAMEL_ORG + ".quarkus", "camel-quarkus-yaml-dsl", version);
             case SpringBoot:
-                return new MavenCoordinates(Constants.APACHE_CAMEL_ORG + ".springboot", "catalog",
+                return new MavenCoordinates(Constants.APACHE_CAMEL_ORG + ".springboot", "camel-yaml-dsl-starter",
                         version);
             default:
                 return new MavenCoordinates(Constants.APACHE_CAMEL_ORG,

@@ -24,11 +24,11 @@ public class Main {
 
         List.of(
                 new CatalogCliArgument(CatalogRuntime.Main, "4.4.0"),
-                new CatalogCliArgument(CatalogRuntime.Main, "4.4.0.redhat-00019"),
-                new CatalogCliArgument(CatalogRuntime.Main, "4.6.0"),
-                new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0")
+                // new CatalogCliArgument(CatalogRuntime.Main, "4.4.0.redhat-00019"),
+                // new CatalogCliArgument(CatalogRuntime.Main, "4.6.0"),
+                new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0"),
                 // new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0.redhat-00004"),
-                // new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0"),
+                new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0")
                 // new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0.redhat-00014")
                 ).forEach(cliCatalog -> {
                     String catalogFolderName = cliCatalog.runtime() + "-" + cliCatalog.version();
