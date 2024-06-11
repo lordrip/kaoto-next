@@ -2,7 +2,6 @@ package io.kaoto.camelcatalog.maven;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -18,14 +17,15 @@ import org.apache.camel.catalog.maven.MavenVersionManager;
 import org.apache.camel.tooling.maven.MavenArtifact;
 import org.apache.camel.tooling.maven.MavenDownloader;
 import org.apache.camel.tooling.maven.MavenDownloaderImpl;
-import org.apache.camel.tooling.maven.MavenResolutionException;
 
 /**
  * This class is a copy of the MavenVersionManager class from the Apache Camel
  * Catalog project.
  *
- * This is needed because the `resolve` method doesn't resolve transitive dependencies
- * and we need to load the underlying Camel YAML DSL from Quarkus and Spring Boot
+ * This is needed because the `resolve` method doesn't resolve transitive
+ * dependencies
+ * and we need to load the underlying Camel YAML DSL from Quarkus and Spring
+ * Boot
  * runtime providers.
  */
 public class KaotoMavenVersionManager extends MavenVersionManager {
@@ -101,8 +101,7 @@ public class KaotoMavenVersionManager extends MavenVersionManager {
      * as one of the URLs in the
      * helperClassLoader, so further Catalog access may load resources from it.
      */
-    public void resolve(MavenDownloader mavenDownloader, String gav, boolean useSnapshots)
-            throws MavenResolutionException, MalformedURLException {
+    public void resolve(MavenDownloader mavenDownloader, String gav, boolean useSnapshots) {
         try {
             Set<String> extraRepositories = new LinkedHashSet<>(repositories.values());
 

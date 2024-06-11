@@ -36,9 +36,9 @@ public class Main {
                 new CatalogCliArgument(CatalogRuntime.Main, "4.4.0.redhat-00019"),
                 new CatalogCliArgument(CatalogRuntime.Main, "4.6.0"),
                 new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0"),
-                new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0.redhat-00004"), // Cannot load the Camel YAML DSL from here
+//                new CatalogCliArgument(CatalogRuntime.Quarkus, "3.8.0.redhat-00004") // Cannot load the Camel YAML DSL from here because of a missing dependency
                 new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0"),
-                new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0.redhat-00014") // This generates a SNAPSHOT version, for instance: `"version" : "4.4.0-SNAPSHOT",`
+                new CatalogCliArgument(CatalogRuntime.SpringBoot, "4.4.0.redhat-00014")
         //
         ).forEach(cliCatalog -> {
             String catalogFolderName = cliCatalog.runtime() + "-" + cliCatalog.version();
