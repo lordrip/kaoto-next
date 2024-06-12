@@ -1,4 +1,4 @@
-package io.kaoto.camelcatalog;
+package io.kaoto.camelcatalog.generator;
 
 import java.util.Comparator;
 import java.util.List;

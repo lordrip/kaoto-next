@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.kaoto.camelcatalog;
+package io.kaoto.camelcatalog.generator;
 
 import java.io.IOException;
 import java.io.StringWriter;

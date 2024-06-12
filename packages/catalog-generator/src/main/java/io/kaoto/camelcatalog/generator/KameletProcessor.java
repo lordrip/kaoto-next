@@ -1,4 +1,4 @@
-package io.kaoto.camelcatalog;
+package io.kaoto.camelcatalog.generator;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.kaoto.camelcatalog;
+package io.kaoto.camelcatalog.generator;
 
 import static io.kaoto.camelcatalog.model.Constants.CAMEL_CATALOG_AGGREGATE;
 import static io.kaoto.camelcatalog.model.Constants.CAMEL_YAML_DSL_FILE_NAME;
@@ -107,7 +107,7 @@ public class CatalogGeneratorBuilder {
         return catalogGenerator;
     }
 
-    class CatalogGenerator {
+    public class CatalogGenerator {
         private static final Logger LOGGER = Logger.getLogger(CatalogGenerator.class.getName());
 
         private static final ObjectMapper jsonMapper = new ObjectMapper()
@@ -120,7 +120,7 @@ public class CatalogGeneratorBuilder {
         private String kameletsVersion;
         private String camelKCRDsVersion;
 
-        public CatalogGenerator(CamelCatalogVersionLoader camelCatalogVersionLoader, CatalogRuntime runtime,
+        private CatalogGenerator(CamelCatalogVersionLoader camelCatalogVersionLoader, CatalogRuntime runtime,
                 File outputDirectory) {
             this.camelCatalogVersionLoader = camelCatalogVersionLoader;
             this.outputDirectory = outputDirectory;

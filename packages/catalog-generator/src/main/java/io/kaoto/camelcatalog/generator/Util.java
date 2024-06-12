@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.kaoto.camelcatalog;
+package io.kaoto.camelcatalog.generator;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.apache.commons.io.FilenameUtils;
 
 public class Util {
     public static String generateHash(byte[] content) throws Exception {
-        if (content == null) return null;
+        if (content == null)
+            return null;
         var digest = java.security.MessageDigest.getInstance("MD5");
         var hash = digest.digest(content);
         return new java.math.BigInteger(1, hash).toString(16);
@@ -32,5 +36,16 @@ public class Util {
 
     public static String generateHash(String content) throws Exception {
         return content == null ? null : generateHash(content.getBytes());
+    }
+
+    public static String getNormalizedFolder(String folder) {
+        // Get the current working directory
+        Path currentDirectory = Paths.get("").toAbsolutePath();
+
+        // Resolve the relative path
+        Path absolutePath = currentDirectory.resolve(folder);
+        String normalizedfolder = FilenameUtils.separatorsToUnix(absolutePath.toString());
+
+        return normalizedfolder;
     }
 }
