@@ -8,6 +8,7 @@ import io.kaoto.camelcatalog.model.CatalogCliArgument;
 
 public class ConfigBean {
     private File outputFolder;
+    private String catalogsName;
     private Set<CatalogCliArgument> catalogVersionSet = new LinkedHashSet<>();
     private String kameletsVersion;
     private boolean verbose = false;
@@ -21,6 +22,14 @@ public class ConfigBean {
 
     public void setOutputFolder(String outputFolder) {
         this.outputFolder = new File(outputFolder);
+    }
+
+    public String getCatalogsName() {
+        return catalogsName;
+    }
+
+    public void setCatalogsName(String catalogsName) {
+        this.catalogsName = catalogsName;
     }
 
     public void addCatalogVersion(CatalogCliArgument catalogCliArg) {

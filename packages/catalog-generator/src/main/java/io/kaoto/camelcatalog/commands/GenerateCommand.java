@@ -18,13 +18,21 @@ public class GenerateCommand implements Runnable {
         this.configBean = configBean;
     }
 
+    File createSubFolder(File parentFolder, String folderName) {
+        File newSubFolder = parentFolder.toPath().resolve(folderName).toFile();
+        newSubFolder.mkdirs();
+        return newSubFolder;
+    }
+
     @Override
     public void run() {
         System.out.println("Output folder: " + configBean.getOutputFolder());
+        System.out.println("Catalog Repository name: " + configBean.getCatalogsName());
         System.out.println("Catalog versions: " + configBean.getCatalogVersionSet());
         System.out.println("Kamelets version: " + configBean.getKameletsVersion());
 
         CatalogLibrary library = new CatalogLibrary();
+        library.setName(configBean.getCatalogsName());
 
         File outputFolder = configBean.getOutputFolder();
         if (!outputFolder.exists()) {
@@ -40,10 +48,9 @@ public class GenerateCommand implements Runnable {
 
         configBean.getCatalogVersionSet()
                 .forEach(catalogCliArg -> {
-                    String catalogFolderName = catalogCliArg.getRuntime() + "-" +
-                            catalogCliArg.getCatalogVersion();
-                    File catalogDefinitionFolder = outputFolder.toPath().resolve(catalogFolderName).toFile();
-                    catalogDefinitionFolder.mkdirs();
+                    String runtimeFolderName = "camel-" + catalogCliArg.getRuntime().name().toLowerCase();
+                    File runtimeFolder = createSubFolder(outputFolder, runtimeFolderName);
+                    File catalogDefinitionFolder = createSubFolder(runtimeFolder, catalogCliArg.getCatalogVersion());
 
                     CatalogGeneratorBuilder builder = new CatalogGeneratorBuilder();
                     var catalogGenerator = builder.withRuntime(catalogCliArg.getRuntime())

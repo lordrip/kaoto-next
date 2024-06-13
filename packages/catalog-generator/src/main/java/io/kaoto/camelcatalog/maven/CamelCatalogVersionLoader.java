@@ -80,11 +80,15 @@ public class CamelCatalogVersionLoader {
         return localSchemas;
     }
 
-    public boolean loadCamelCatalog(String version) {
+    public void configureRepositories(String version) {
+        KAOTO_VERSION_MANAGER.addMavenRepository("central", "https://repo1.maven.org/maven2/");
         if (version.contains("redhat")) {
-            KAOTO_VERSION_MANAGER.addMavenRepository("central", "https://repo1.maven.org/maven2/");
             KAOTO_VERSION_MANAGER.addMavenRepository("maven.redhat.ga", "https://maven.repository.redhat.com/ga/");
         }
+    }
+
+    public boolean loadCamelCatalog(String version) {
+        configureRepositories(version);
 
         MavenCoordinates mavenCoordinates = getCatalogMavenCoordinates(runtime, version);
         boolean camelCatalogLoaded = loadDependencyInClasspath(mavenCoordinates);
@@ -109,10 +113,7 @@ public class CamelCatalogVersionLoader {
     }
 
     public boolean loadCamelYamlDsl(String version) {
-        if (version.contains("redhat")) {
-            KAOTO_VERSION_MANAGER.addMavenRepository("central", "https://repo1.maven.org/maven2/");
-            KAOTO_VERSION_MANAGER.addMavenRepository("maven.redhat.ga", "https://maven.repository.redhat.com/ga/");
-        }
+        configureRepositories(version);
 
         MavenCoordinates mavenCoordinates = getYamlDslMavenCoordinates(runtime, version);
         boolean isCamelYamlDslLoaded = loadDependencyInClasspath(mavenCoordinates);

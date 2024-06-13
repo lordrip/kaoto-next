@@ -22,6 +22,10 @@ public class Main {
                                 .desc("Output directory. It will be cleaned before generating the catalogs").hasArg()
                                 .required()
                                 .build();
+                Option catalogsNameOption = Option.builder().argName("catalogsName").option("n").longOpt("name")
+                                .desc("Catalog Name. It serves as human readable identifier of the catalog repository").hasArg()
+                                .required()
+                                .build();
                 Option kameletsVersionOption = Option.builder().argName("kameletsVersion").option("k")
                                 .longOpt("kamelets")
                                 .desc("Kamelets catalog version").hasArg().required().build();
@@ -38,6 +42,7 @@ public class Main {
                                 .build();
 
                 options.addOption(outputOption);
+                options.addOption(catalogsNameOption);
                 options.addOption(kameletsVersionOption);
                 options.addOption(camelMainVersionOption);
                 options.addOption(camelQuarkusVersionOption);
@@ -51,6 +56,7 @@ public class Main {
                 try {
                         cmd = parser.parse(options, args);
                         configBean.setOutputFolder(Util.getNormalizedFolder(cmd.getOptionValue(outputOption.getOpt())));
+                        configBean.setCatalogsName(cmd.getOptionValue(catalogsNameOption.getOpt()));
                         configBean.setKameletsVersion(cmd.getOptionValue(kameletsVersionOption.getOpt()));
 
                         addRuntimeVersions(configBean, cmd, camelMainVersionOption, CatalogRuntime.Main);

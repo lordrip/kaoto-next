@@ -151,6 +151,7 @@ public class CatalogGeneratorBuilder {
                 catalogDefinition.setVersion(camelCatalogVersion);
                 catalogDefinition.setRuntime(camelCatalogVersionLoader.getRuntime());
                 catalogDefinition.setFileName(indexFile.getName());
+                catalogDefinition.setName("Camel " + runtime.name() + " " + camelCatalogVersion);
 
                 jsonMapper.writerWithDefaultPrettyPrinter().writeValue(indexFile, catalogDefinition);
 
