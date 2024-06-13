@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -232,16 +231,13 @@ public class CatalogGeneratorBuilder {
                         // Adding Kamelet & Pipe Configuration Schema to the Entities Catalog
                         if (name.equals("entities")) {
                             var catalogNode = jsonMapper.readTree(catalog);
-                            String files[] = { "KameletConfiguration.json", "PipeConfiguration.json" };
-                            for (String file : files) {
-                                // resolve schemas from the resources folder
-                                var schema = Paths
-                                        .get(getClass().getClassLoader().getResource("schemas/" + file).toURI());
-
-                                ((ObjectNode) catalogNode).putObject(file.split("\\.")[0])
+                            String customSchemas[] = { "KameletConfiguration", "PipeConfiguration" };
+                            for (String customSchema : customSchemas) {
+                                ((ObjectNode) catalogNode).putObject(customSchema)
                                         .putObject("propertiesSchema");
-                                ((ObjectNode) catalogNode.path(file.split("\\.")[0]).path("propertiesSchema"))
-                                        .setAll((ObjectNode) jsonMapper.readTree(schema.toFile()));
+                                ((ObjectNode) catalogNode.path(customSchema).path("propertiesSchema"))
+                                        .setAll((ObjectNode) jsonMapper.readTree(
+                                                camelCatalogVersionLoader.getLocalSchemas().get(customSchema)));
                             }
 
                             StringWriter writer = new StringWriter();

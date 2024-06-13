@@ -34,14 +34,14 @@ import io.kaoto.camelcatalog.model.MavenCoordinates;
 public class CamelCatalogVersionLoader {
     private static final Logger LOGGER = Logger.getLogger(CamelCatalogVersionLoader.class.getName());
     private final KaotoMavenVersionManager KAOTO_VERSION_MANAGER = new KaotoMavenVersionManager();
-    private CamelCatalog camelCatalog = new DefaultCamelCatalog(false);
+    private final CamelCatalog camelCatalog = new DefaultCamelCatalog(false);
+    private final Map<String, String> kameletBoundaries = new HashMap<>();
+    private final Map<String, String> kamelets = new HashMap<>();
+    private final List<String> camelKCRDs = new ArrayList<>();
+    private final Map<String, String> localSchemas = new HashMap<>();
+    private final CatalogRuntime runtime;
     private String camelYamlDSLSchema;
     private String kubernetesSchema;
-    private List<String> kameletBoundaries = new ArrayList<>();
-    private List<String> kamelets = new ArrayList<>();
-    private List<String> camelKCRDs = new ArrayList<>();
-    private Map<String, String> localSchemas = new HashMap<>();
-    private CatalogRuntime runtime;
 
     public CamelCatalogVersionLoader(CatalogRuntime runtime) {
         this.runtime = runtime;
@@ -61,11 +61,11 @@ public class CamelCatalogVersionLoader {
     }
 
     public List<String> getKameletBoundaries() {
-        return kameletBoundaries;
+        return kameletBoundaries.values().stream().toList();
     }
 
     public List<String> getKamelets() {
-        return kamelets;
+        return kamelets.values().stream().toList();
     }
 
     public String getKubernetesSchema() {
@@ -91,7 +91,7 @@ public class CamelCatalogVersionLoader {
 
         /**
          * Check the current runtime, so we can apply the corresponding RuntimeProvider
-         * to the catalog
+         * to the catalogF
          */
         switch (runtime) {
             case Quarkus:
@@ -137,27 +137,7 @@ public class CamelCatalogVersionLoader {
     }
 
     public boolean loadKameletBoundaries() {
-        ClassLoader classLoader = KAOTO_VERSION_MANAGER.getClassLoader();
-
-        URL resourceUrl = classLoader.getResource("kamelet-boundaries");
-
-        try {
-            Files.walk(Paths.get(resourceUrl.toURI()))
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".kamelet.yaml"))
-                    .forEach(path -> {
-                        LOGGER.log(Level.INFO, "Parsing: " + path.toString());
-
-                        try {
-                            kameletBoundaries.add(new String(Files.readAllBytes(path)));
-                        } catch (IOException e) {
-                            LOGGER.log(Level.SEVERE, e.toString(), e);
-                        }
-                    });
-        } catch (IOException | URISyntaxException e) {
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-        }
-
+        loadResourcesFromFolderAsString("kamelet-boundaries", kameletBoundaries, ".kamelet.yaml");
         return !kameletBoundaries.isEmpty();
     }
 
@@ -166,40 +146,7 @@ public class CamelCatalogVersionLoader {
                 Constants.KAMELETS_PACKAGE,
                 version);
         boolean areKameletsLoaded = loadDependencyInClasspath(mavenCoordinates);
-
-        ClassLoader classLoader = KAOTO_VERSION_MANAGER.getClassLoader();
-        try {
-            Iterator<URL> it = classLoader.getResources("kamelets").asIterator();
-
-            while (it.hasNext()) {
-                URL resourceUrl = it.next();
-
-                if ("jar".equals(resourceUrl.getProtocol())) {
-                    JarURLConnection connection = (JarURLConnection) resourceUrl.openConnection();
-                    JarFile jarFile = connection.getJarFile();
-                    Enumeration<JarEntry> entries = jarFile.entries();
-
-                    while (entries.hasMoreElements()) {
-                        JarEntry entry = entries.nextElement();
-                        if (entry.getName().startsWith(connection.getEntryName()) && !entry.isDirectory()
-                                && entry.getName().endsWith(".kamelet.yaml")) {
-
-                            LOGGER.log(Level.INFO, "Parsing: " + entry.getName());
-                            try (InputStream inputStream = jarFile.getInputStream(entry)) {
-                                try (Scanner scanner = new Scanner(inputStream)) {
-                                    scanner.useDelimiter("\\A");
-                                    kamelets.add(scanner.hasNext() ? scanner.next() : "");
-                                }
-                            } catch (IOException e) {
-                                LOGGER.log(Level.SEVERE, e.toString(), e);
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-        }
+        loadResourcesFromFolderAsString("kamelets", kamelets, ".kamelet.yaml");
 
         return areKameletsLoaded;
     }
@@ -248,24 +195,64 @@ public class CamelCatalogVersionLoader {
     }
 
     public void loadLocalSchemas() {
+        loadResourcesFromFolderAsString("schemas", localSchemas, ".json");
+    }
+
+    private void loadResourcesFromFolderAsString(String resourceFolderName, Map<String, String> filesMap,
+            String fileSuffix) {
         ClassLoader classLoader = KAOTO_VERSION_MANAGER.getClassLoader();
-        URL schemasFolderUrl = classLoader.getResource("schemas");
 
         try {
-            Files.walk(Paths.get(schemasFolderUrl.toURI()))
-                    .filter(Files::isRegularFile)
-                    .forEach(path -> {
-                        LOGGER.log(Level.INFO, "Parsing: " + path.toString());
+            Iterator<URL> it = classLoader.getResources(resourceFolderName).asIterator();
 
-                        try {
-                            String filenameWithoutExtension = path.toFile().getName().substring(0,
-                                    path.toFile().getName().lastIndexOf('.'));
-                            localSchemas.put(filenameWithoutExtension, new String(Files.readAllBytes(path)));
-                        } catch (IOException e) {
-                            LOGGER.log(Level.SEVERE, e.toString(), e);
+            while (it.hasNext()) {
+                URL resourceUrl = it.next();
+
+                if ("jar".equals(resourceUrl.getProtocol())) {
+                    JarURLConnection connection = (JarURLConnection) resourceUrl.openConnection();
+                    JarFile jarFile = connection.getJarFile();
+                    Enumeration<JarEntry> entries = jarFile.entries();
+
+                    while (entries.hasMoreElements()) {
+                        JarEntry entry = entries.nextElement();
+                        if (entry.getName().startsWith(connection.getEntryName()) && !entry.isDirectory()
+                                && entry.getName().endsWith(fileSuffix)) {
+
+                            LOGGER.log(Level.INFO, "Parsing: " + entry.getName());
+                            try (InputStream inputStream = jarFile.getInputStream(entry)) {
+                                try (Scanner scanner = new Scanner(inputStream)) {
+                                    scanner.useDelimiter("\\A");
+                                    String filenameWithoutExtension = entry.getName().replace(resourceFolderName + "/", "")
+                                            .replace(fileSuffix, "");
+                                    filesMap.put(filenameWithoutExtension, scanner.hasNext() ? scanner.next() : "");
+                                }
+                            } catch (IOException e) {
+                                LOGGER.log(Level.SEVERE, e.toString(), e);
+                            }
                         }
-                    });
-        } catch (IOException | URISyntaxException e) {
+                    }
+                } else if ("file".equals(resourceUrl.getProtocol())) {
+                    try {
+                        Files.walk(Paths.get(resourceUrl.toURI()))
+                                .filter(Files::isRegularFile)
+                                .filter(path -> path.toString().endsWith(fileSuffix))
+                                .forEach(path -> {
+                                    LOGGER.log(Level.INFO, "Parsing: " + path.toString());
+
+                                    try {
+                                        String filenameWithoutExtension = path.toFile().getName().substring(0,
+                                                path.toFile().getName().lastIndexOf('.'));
+                                        filesMap.put(filenameWithoutExtension, new String(Files.readAllBytes(path)));
+                                    } catch (IOException e) {
+                                        LOGGER.log(Level.SEVERE, e.toString(), e);
+                                    }
+                                });
+                    } catch (IOException | URISyntaxException e) {
+                        LOGGER.log(Level.SEVERE, e.toString(), e);
+                    }
+                }
+            }
+        } catch (IOException e) {
             LOGGER.log(Level.SEVERE, e.toString(), e);
         }
     }

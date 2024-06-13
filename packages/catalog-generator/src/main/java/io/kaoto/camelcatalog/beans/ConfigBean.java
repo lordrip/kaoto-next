@@ -5,13 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import io.kaoto.camelcatalog.model.CatalogCliArgument;
-import io.quarkus.runtime.annotations.RegisterForReflection;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
 
-@ApplicationScoped
-@Named("configBean")
-@RegisterForReflection
 public class ConfigBean {
     private File outputFolder;
     private Set<CatalogCliArgument> catalogVersionSet = new LinkedHashSet<>();
